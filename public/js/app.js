@@ -94,6 +94,23 @@
   const countdownOverlay = $('countdown-overlay');
   const countdownNumber = $('countdown-number');
 
+  // Game Panels
+  const sidePanel = $('game-side-panel');
+  const btnToggleSide = $('btn-toggle-side');
+  const btnCloseSide = $('btn-close-side');
+  const panelTabs = document.querySelectorAll('.panel-tab');
+  
+  const chatSidebarDesktop = $('desktop-chat-sidebar');
+  const logSidebarDesktop = $('desktop-log-sidebar');
+  const btnToggleChatDesktop = $('btn-toggle-chat-desktop');
+  const btnToggleLogDesktop = $('btn-toggle-log-desktop');
+  
+  const btnSendGameChatMobile = $('btn-send-game-chat-mobile');
+  const btnSendGameChatDesktop = $('btn-send-game-chat-desktop');
+  
+  const sideSections = document.querySelectorAll('.side-section');
+  const gameLayout = $('game-layout');
+
   // Overlays
   const revealOverlay = $('reveal-overlay');
   const revealTitle = $('reveal-title');
@@ -196,30 +213,73 @@
   btnCloseHelp.addEventListener('click', () => helpModal.classList.add('hidden'));
   helpModal.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.classList.add('hidden'); });
 
-  // Lobby Chat
-  function sendChatMessage() {
-    const msg = lobbyChatInput.value.trim();
+  // Unified Chat
+  function sendChatMessage(type = 'lobby') {
+    let input;
+    if (type === 'lobby') input = lobbyChatInput;
+    else if (type === 'mobile') input = $('game-chat-input-mobile');
+    else if (type === 'desktop') input = $('game-chat-input-desktop');
+
+    const msg = input?.value.trim();
     if (!msg || !state.roomCode) return;
     socket.emit('lobby_chat', { roomCode: state.roomCode, message: msg });
-    lobbyChatInput.value = '';
+    input.value = '';
   }
-  btnSendChat.addEventListener('click', sendChatMessage);
-  lobbyChatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage(); });
+
+  btnSendChat.addEventListener('click', () => sendChatMessage('lobby'));
+  lobbyChatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage('lobby'); });
+  
+  btnSendGameChatMobile?.addEventListener('click', () => sendChatMessage('mobile'));
+  $('game-chat-input-mobile')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage('mobile'); });
+  
+  btnSendGameChatDesktop?.addEventListener('click', () => sendChatMessage('desktop'));
+  $('game-chat-input-desktop')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage('desktop'); });
 
   socket.on('lobby_chat_message', (data) => {
-    const msgEl = document.createElement('div');
-    msgEl.className = 'chat-msg';
-    const nameSpan = document.createElement('span');
-    nameSpan.className = 'chat-name';
-    nameSpan.textContent = data.playerName + ':';
-    nameSpan.style.color = avatarColors[data.teamIndex % avatarColors.length];
-    const textSpan = document.createElement('span');
-    textSpan.className = 'chat-text';
-    textSpan.textContent = data.message;
-    msgEl.appendChild(nameSpan);
-    msgEl.appendChild(textSpan);
-    lobbyChatMessages.appendChild(msgEl);
-    lobbyChatMessages.scrollTop = lobbyChatMessages.scrollHeight;
+    const chatContainers = document.querySelectorAll('.game-chat-messages, #lobby-chat-messages');
+    chatContainers.forEach(container => {
+      const msgEl = document.createElement('div');
+      msgEl.className = 'chat-msg';
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'chat-name';
+      nameSpan.textContent = data.playerName + ':';
+      nameSpan.style.color = avatarColors[data.teamIndex % avatarColors.length];
+      const textSpan = document.createElement('span');
+      textSpan.className = 'chat-text';
+      textSpan.textContent = data.message;
+      msgEl.appendChild(nameSpan);
+      msgEl.appendChild(textSpan);
+      container.appendChild(msgEl);
+      container.scrollTop = container.scrollHeight;
+    });
+  });
+
+  // Panel Logic
+  function toggleSidePanel() {
+    sidePanel.classList.toggle('closed');
+  }
+  btnToggleSide?.addEventListener('click', toggleSidePanel);
+  btnCloseSide?.addEventListener('click', toggleSidePanel);
+
+  btnToggleChatDesktop?.addEventListener('click', () => chatSidebarDesktop.classList.toggle('collapsed'));
+  btnToggleLogDesktop?.addEventListener('click', () => logSidebarDesktop.classList.toggle('collapsed'));
+  
+  // Also allow clicking header to toggle
+  chatSidebarDesktop?.querySelector('.corner-panel-header')?.addEventListener('click', (e) => {
+    if (e.target.tagName !== 'BUTTON') chatSidebarDesktop.classList.toggle('collapsed');
+  });
+  logSidebarDesktop?.querySelector('.corner-panel-header')?.addEventListener('click', (e) => {
+    if (e.target.tagName !== 'BUTTON') logSidebarDesktop.classList.toggle('collapsed');
+  });
+
+  panelTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.tab;
+      panelTabs.forEach(t => t.classList.toggle('active', t === tab));
+      sideSections.forEach(sec => {
+        sec.classList.toggle('active', sec.id === `side-section-${target}`);
+      });
+    });
   });
 
   // ===== LOBBY =====
@@ -590,6 +650,29 @@
     if (livesTitle) livesTitle.textContent = "Shots Taken";
   }
 
+  // Helper for Grammar
+  function getTeamGrammar(teamIndex) {
+    const members = state.players.filter(p => p.teamIndex === teamIndex);
+    const isMe = members.some(p => p.id === state.playerId);
+    const names = members.map(p => p.name).join(' & ');
+    
+    if (members.length === 1) {
+      return { 
+        who: isMe ? 'You' : names,
+        whom: isMe ? 'you' : names,
+        possessive: isMe ? 'Your' : `${names}'s`,
+        is: 'is', has: 'has', was: 'was'
+      };
+    } else {
+      return { 
+        who: isMe ? 'Your Team' : names,
+        whom: isMe ? 'your team' : names,
+        possessive: isMe ? 'Your Team\'s' : `${names}'s`,
+        is: 'are', has: 'have', was: 'were'
+      };
+    }
+  }
+
   function highlightActivePlayer(playerId) {
     document.querySelectorAll('.opponent-card').forEach(c => c.classList.remove('active-turn'));
     const el = document.getElementById(`opponent-${playerId}`);
@@ -810,11 +893,14 @@
 
   // ===== GAME LOG =====
   function addLogEntry(message, type) {
-    const entry = document.createElement('div');
-    entry.className = `log-entry ${type || ''}`;
-    entry.textContent = message;
-    gameLog.appendChild(entry);
-    gameLog.scrollTop = gameLog.scrollHeight;
+    const logContainers = document.querySelectorAll('.game-log-container');
+    logContainers.forEach(container => {
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type || ''}`;
+      entry.textContent = message;
+      container.appendChild(entry);
+      container.scrollTop = container.scrollHeight;
+    });
   }
 
   // ===== SOCKET EVENTS =====
@@ -871,7 +957,7 @@
     state.gameActive = true;
     showScreen('game');
     gameRoomCode.textContent = state.roomCode;
-    gameLog.innerHTML = '';
+    document.querySelectorAll('.game-log-container').forEach(c => c.innerHTML = '');
     revealOverlay.classList.add('hidden');
     revolverOverlay.classList.add('hidden');
 
@@ -951,7 +1037,7 @@
 
     if (state.isMyTurn) {
       statusMessage.className = 'status-message status-your-turn';
-      statusMessage.textContent = state.canCallLiar ? 'Your turn — Play or call LIAR!' : 'Your turn — Play cards!';
+      statusMessage.textContent = state.canCallLiar ? 'Your turn — Play or call UWONGO!' : 'Your turn — Play cards!';
     } else {
       statusMessage.className = 'status-message status-waiting';
       statusMessage.textContent = `${data.teamNames}'s turn...`;
@@ -970,12 +1056,8 @@
   });
 
   socket.on('cards_played', (data) => {
-    const teamPlayers = state.players.filter(p => p.teamIndex === data.teamIndex);
-    const isMyTeam = teamPlayers.some(p => p.id === state.playerId);
-    const teamNames = teamPlayers.map(p => p.name).join(' & ');
-    const who = isMyTeam ? 'Your Team' : teamNames;
-
-    lastPlayInfo.textContent = `${who} played ${data.declaredCount} ${data.declaredRank}${data.declaredCount > 1 ? 's' : ''}`;
+    const grammar = getTeamGrammar(data.teamIndex);
+    lastPlayInfo.textContent = `${grammar.who} played ${data.declaredCount} ${data.declaredRank}${data.declaredCount > 1 ? 's' : ''}`;
     updatePile(data.pileSize);
   });
 
@@ -995,19 +1077,13 @@
   // -- Challenge --
   socket.on('liar_called', (data) => {
     clearTimer();
-    const isChallengerMe = data.challengerId === state.playerId;
-    const isChallengedMe = data.challengedId === state.playerId;
+    const challengerGrammar = getTeamGrammar(data.challengerTeamIndex);
+    const challengedGrammar = getTeamGrammar(data.challengedTeamIndex);
 
-    const challengerTeamPlayers = state.players.filter(p => p.teamIndex === data.challengerTeamIndex);
-    const challengedTeamPlayers = state.players.filter(p => p.teamIndex === data.challengedTeamIndex);
+    const who = challengerGrammar.who;
+    const whom = challengedGrammar.whom;
 
-    const challengerNames = challengerTeamPlayers.map(p => p.name).join(' & ');
-    const challengedNames = challengedTeamPlayers.map(p => p.name).join(' & ');
-
-    const who = isChallengerMe ? 'You' : challengerNames;
-    const whom = isChallengedMe ? 'your team' : challengedNames;
-
-    showToast(`${who} called LIAR on ${whom}!`, 'warning');
+    showToast(`${who} called UWONGO on ${whom}!`, 'warning');
     statusMessage.className = 'status-message';
     
     // Render Pile Timeline
@@ -1073,7 +1149,7 @@
 
     if (data.wasLying) {
       revealResult.className = 'reveal-result liar';
-      revealResult.textContent = `🤥 ${challengedTeamNames} were LYING!`;
+      revealResult.textContent = `🤥 ${challengedTeamNames} were caught BLUFFING!`;
     } else {
       revealResult.className = 'reveal-result truth';
       revealResult.textContent = `✅ ${challengedTeamNames} told the truth!`;

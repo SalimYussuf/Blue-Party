@@ -66,8 +66,8 @@
       </div>
 
       <div class="modal-section">
-        <h3>🤥 Calling LIAR</h3>
-        <p>Instead of playing, you can call LIAR on the previous player. Their cards are revealed. If they were lying, they lose. If they told the truth, YOU lose.</p>
+        <h3>🤥 Calling UWONGO</h3>
+        <p>Instead of playing, you can call UWONGO on the previous player. Their cards are revealed. If they were lying, they lose. If they told the truth, YOU lose.</p>
       </div>
 
       <div class="modal-section">
@@ -105,7 +105,7 @@
         <div class="lobby-card glass">
           <h2>Join a Room</h2>
           <div class="input-group">
-            <div class="input-row">
+            <div class="input-row wrap-mobile">
               <input type="text" id="room-code-input" placeholder="Room code..." maxlength="6" autocomplete="off"
                 style="text-transform:uppercase">
               <button class="btn btn-emerald" id="btn-join-room">Join</button>
@@ -136,7 +136,7 @@
         <div class="lobby-card glass" id="lobby-chat-panel">
           <h2>Chat</h2>
           <div class="lobby-chat-messages" id="lobby-chat-messages"></div>
-          <div class="input-row">
+          <div class="input-row wrap-mobile">
             <input type="text" id="lobby-chat-input" placeholder="Type a message..." maxlength="100" autocomplete="off">
             <button class="btn btn-emerald btn-sm" id="btn-send-chat">Send</button>
           </div>
@@ -176,15 +176,71 @@
 
   <!-- ===== GAME SCREEN ===== -->
   <div class="screen" id="game-screen">
+    <!-- Desktop Corner Panel: Chat (Left) -->
+    <div class="desktop-corner-panel glass collapsed" id="desktop-chat-sidebar">
+      <div class="corner-panel-body">
+        <div class="game-chat-messages" id="game-chat-messages-desktop"></div>
+        <div class="input-row">
+          <input type="text" id="game-chat-input-desktop" placeholder="Message..." maxlength="100" autocomplete="off">
+          <button class="btn btn-emerald btn-sm btn-no-shrink" id="btn-send-game-chat-desktop">Send</button>
+        </div>
+      </div>
+      <div class="corner-panel-header">
+        <h3>Chat</h3>
+        <button class="btn-toggle-panel" id="btn-toggle-chat-desktop">▼</button>
+      </div>
+    </div>
+
+    <!-- Desktop Corner Panel: Log (Right) -->
+    <div class="desktop-corner-panel glass collapsed" id="desktop-log-sidebar">
+      <div class="corner-panel-body">
+        <div class="game-log-container" id="game-log-desktop"></div>
+      </div>
+      <div class="corner-panel-header">
+        <h3>Game Log</h3>
+        <button class="btn-toggle-panel" id="btn-toggle-log-desktop">▼</button>
+      </div>
+    </div>
+
     <!-- Spectator Banner -->
     <div class="spectator-banner hidden" id="spectator-banner">
       💀 Spectating — You have been eliminated
     </div>
 
+    <!-- Mobile Side Panel (Sidebar) -->
+    <div class="game-side-panel glass closed" id="game-side-panel">
+      <div class="side-panel-header">
+        <div class="side-panel-tabs">
+          <button class="panel-tab active" data-tab="log">Log</button>
+          <button class="panel-tab" data-tab="chat">Chat</button>
+        </div>
+        <button class="side-panel-close" id="btn-close-side">✕</button>
+      </div>
+
+      <div class="side-panel-content">
+        <!-- Log Section -->
+        <div class="side-section active" id="side-section-log">
+          <div class="game-log-container" id="game-log-mobile"></div>
+        </div>
+        <!-- Chat Section -->
+        <div class="side-section" id="side-section-chat">
+          <div class="game-chat-messages" id="game-chat-messages-mobile"></div>
+          <div class="input-row">
+            <input type="text" id="game-chat-input-mobile" placeholder="Type a message..." maxlength="100" autocomplete="off">
+            <button class="btn btn-emerald btn-sm" id="btn-send-game-chat-mobile">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="game-layout" id="game-layout">
       <!-- Top bar -->
       <div class="game-top-bar glass">
-        <div class="room-info">Room: <span id="game-room-code"></span></div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="btn-icon mobile-only" id="btn-toggle-side" title="Toggle Log/Chat">☰</button>
+          <div class="room-info">Room: <span id="game-room-code"></span></div>
+        </div>
+        
         <div class="top-controls">
           <div class="volume-control">
             <button class="btn-icon" id="btn-mute" title="Mute/Unmute Sounds">🔊</button>
@@ -245,7 +301,7 @@
 
         <div class="action-buttons" id="action-buttons">
           <button class="btn btn-emerald" id="btn-play-cards" disabled>Play Cards</button>
-          <button class="btn-liar" id="btn-call-liar" disabled>🃏 LIAR!</button>
+          <button class="btn-liar" id="btn-call-liar" disabled>🃏 UWONGO!</button>
         </div>
 
         <div class="emoji-bar" id="emoji-bar">
@@ -269,12 +325,6 @@
           <div class="hand-container" id="hand-container"></div>
         </div>
       </div>
-    </div>
-
-    <!-- Game Log -->
-    <div class="game-log-panel glass" id="game-log-panel">
-      <h3>Game Log</h3>
-      <div id="game-log"></div>
     </div>
   </div>
 

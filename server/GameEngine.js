@@ -381,7 +381,7 @@ class GameEngine {
     const challengedTeamNames = challengedTeamPlayers.map(p => p.name).join(' & ');
 
     this.addLog(
-      `${challenger.name} called LIAR on ${challengedTeamNames}!`,
+      `${challenger.name} called UWONGO on ${challengedTeamNames}!`,
       'challenge'
     );
 
@@ -512,10 +512,11 @@ class GameEngine {
     const challengedTeamPlayers = [...this.room.players.values()].filter(p => p.teamIndex === challenged.teamIndex);
     const challengedTeamNames = challengedTeamPlayers.map(p => p.name).join(' & ');
 
+    const challengerTeamPlayers = [...this.room.players.values()].filter(p => p.teamIndex === challenger.teamIndex);
     const verb = challengedTeamPlayers.length > 1 ? 'were' : 'was';
     const reason = wasLying
       ? `${challengedTeamNames} ${verb} caught lying!`
-      : `${challenger.name}'s team was wrong — ${challengedTeamNames} told the truth!`;
+      : `${challenger.name}${challengerTeamPlayers.length > 1 ? "'s team" : ""} was wrong — ${challengedTeamNames} told the truth!`;
 
     this.addLog(reason, 'result');
 
