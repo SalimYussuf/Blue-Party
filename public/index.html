@@ -85,8 +85,8 @@
   <!-- ===== LOBBY SCREEN ===== -->
   <div class="screen active" id="lobby-screen">
     <div class="lobby-container">
-      <h1 class="lobby-title">Uwongo's Bar</h1>
-      <p class="lobby-subtitle">Bluff. Challenge. Survive.</p>
+      <h1 class="lobby-title">Party Game Box</h1>
+      <p class="lobby-subtitle">Pick a game. Gather friends. Have fun.</p>
 
       <!-- Join/Create Panel (before room is created/joined) -->
       <div id="lobby-join-panel">
@@ -142,26 +142,38 @@
           </div>
         </div>
 
-        <!-- Room Settings (Host only) -->
+        <!-- Room Settings / Game Selection -->
         <div class="lobby-card glass" id="room-settings-panel" style="display:none">
-          <h2>Game Mode</h2>
-          <div class="settings-group">
-            <label class="toggle-container">
-              <div class="toggle-info">
-                <span class="toggle-label">😈 Devil Card Mode</span>
-                <span class="toggle-desc">One hidden card triggers a lobby-wide punishment.</span>
-              </div>
-              <input type="checkbox" id="toggle-devil-mode">
-              <span class="toggle-slider"></span>
-            </label>
-            <label class="toggle-container" style="margin-top: 10px;">
-              <div class="toggle-info">
-                <span class="toggle-label">🔥 Chaos Mode</span>
-                <span class="toggle-desc">12 cards, 3 per hand, 1 play per turn. Winners pick targets!</span>
-              </div>
-              <input type="checkbox" id="toggle-chaos-mode">
-              <span class="toggle-slider"></span>
-            </label>
+          <h2>Game Selection</h2>
+          <div class="input-group" style="margin-bottom: 15px;">
+            <select id="lobby-game-select" disabled style="width: 100%; padding: 10px; background: rgba(0,0,0,0.5); color: white; border: 1px solid var(--emerald); border-radius: 8px; font-size: 1rem;">
+              <option value="liars-bar">Uwongo's Bar</option>
+              <option value="spyfall">Spyfall</option>
+              <option value="scribble">Scribble Charades</option>
+              <option value="codenames">Codenames</option>
+            </select>
+          </div>
+
+          <div id="uwongos-settings">
+            <h2>Uwongo's Settings</h2>
+            <div class="settings-group">
+              <label class="toggle-container">
+                <div class="toggle-info">
+                  <span class="toggle-label">😈 Devil Card Mode</span>
+                  <span class="toggle-desc">One hidden card triggers a lobby-wide punishment.</span>
+                </div>
+                <input type="checkbox" id="toggle-devil-mode">
+                <span class="toggle-slider"></span>
+              </label>
+              <label class="toggle-container" style="margin-top: 10px;">
+                <div class="toggle-info">
+                  <span class="toggle-label">🔥 Chaos Mode</span>
+                  <span class="toggle-desc">12 cards, 3 per hand, 1 play per turn. Winners pick targets!</span>
+                </div>
+                <input type="checkbox" id="toggle-chaos-mode">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
           </div>
         </div>
 
@@ -174,8 +186,9 @@
     </div>
   </div>
 
-  <!-- ===== GAME SCREEN ===== -->
-  <div class="screen" id="game-screen">
+
+  <!-- ===== LIARS BAR SCREEN ===== -->
+  <div class="screen" id="liars-bar-screen">
     <!-- Desktop Corner Panel: Chat (Left) -->
     <div class="desktop-corner-panel glass collapsed" id="desktop-chat-sidebar">
       <div class="corner-panel-body">

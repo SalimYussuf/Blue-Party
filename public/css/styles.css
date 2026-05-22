@@ -83,6 +83,40 @@ body {
   align-items: center;
 }
 
+/* ===== GAME SELECTION ===== */
+.game-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.game-card {
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-glass);
+}
+
+.game-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(212, 168, 71, 0.2);
+  border-color: rgba(212, 168, 71, 0.4);
+}
+
+.game-card h3 {
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+
+.game-card p {
+  font-size: 0.9rem;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
 /* ===== LOBBY ===== */
 #lobby-screen {
   justify-content: center;

@@ -8,6 +8,7 @@ class Room {
     this.hostId = hostPlayer.id;
     this.state = ROOM_STATE.WAITING;
     this.createdAt = Date.now();
+    this.selectedGameId = 'liars-bar';
     this.settings = {
       isDevilCardMode: false,
     };

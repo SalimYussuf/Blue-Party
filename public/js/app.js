@@ -3,6 +3,8 @@
   'use strict';
 
   const socket = io();
+  window.app = window.app || {};
+  window.app.socket = socket;
 
   // ===== STATE =====
   const state = {
@@ -32,12 +34,13 @@
     isEliminated: false,
     turnOrder: [],
   };
+  window.app.state = state;
 
   // ===== DOM REFS =====
   const $ = (id) => document.getElementById(id);
   const screens = {
     lobby: $('lobby-screen'),
-    game: $('game-screen'),
+    'liars-bar': $('liars-bar-screen'),
     results: $('results-screen'),
   };
 
@@ -54,6 +57,8 @@
   const btnStart = $('btn-start-game');
   const btnLeave = $('btn-leave-room');
   const roomSettingsPanel = $('room-settings-panel');
+  const lobbyGameSelect = $('lobby-game-select');
+  const uwongosSettings = $('uwongos-settings');
   const toggleDevilMode = $('toggle-devil-mode');
   const toggleChaosMode = $('toggle-chaos-mode');
   const lobbyChatMessages = $('lobby-chat-messages');
@@ -182,6 +187,7 @@
     $('toast-container').appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
   }
+  window.app.showToast = showToast;
 
   btnMute.addEventListener('click', () => {
     if (state.volume > 0) {
@@ -366,9 +372,22 @@
 
     // Show settings panel if host
     roomSettingsPanel.style.display = 'block';
+    
+    lobbyGameSelect.disabled = !state.isHost;
     toggleDevilMode.disabled = !state.isHost;
     toggleChaosMode.disabled = !state.isHost;
+    
+    // Set initial game
+    if (state.selectedGameId) {
+      lobbyGameSelect.value = state.selectedGameId;
+      uwongosSettings.style.display = state.selectedGameId === 'liars-bar' ? 'block' : 'none';
+    }
   }
+
+  lobbyGameSelect.addEventListener('change', () => {
+    if (!state.isHost) return;
+    socket.emit('change_game', { roomCode: state.roomCode, gameId: lobbyGameSelect.value });
+  });
 
   function updatePlayerList(players, hostId) {
     state.isHost = (hostId === state.playerId);
@@ -909,6 +928,7 @@
   socket.on('room_created', (data) => {
     state.playerId = data.playerId;
     state.roomCode = data.roomCode;
+    state.selectedGameId = data.selectedGameId;
     state.settings = data.settings || state.settings;
     if (toggleDevilMode) toggleDevilMode.checked = state.settings.isDevilCardMode;
     if (toggleChaosMode) toggleChaosMode.checked = state.settings.isChaosMode;
@@ -919,6 +939,7 @@
   socket.on('room_joined', (data) => {
     state.playerId = data.playerId;
     state.roomCode = data.roomCode;
+    state.selectedGameId = data.selectedGameId;
     state.settings = data.settings || state.settings;
     if (toggleDevilMode) toggleDevilMode.checked = state.settings.isDevilCardMode;
     if (toggleChaosMode) toggleChaosMode.checked = state.settings.isChaosMode;
@@ -952,10 +973,46 @@
     resetToJoin();
   });
 
+  // -- Game Selection --
+  socket.on('room_game_changed', (data) => {
+    state.selectedGameId = data.gameId;
+    if (lobbyGameSelect) {
+      lobbyGameSelect.value = data.gameId;
+    }
+    if (uwongosSettings) {
+      uwongosSettings.style.display = data.gameId === 'liars-bar' ? 'block' : 'none';
+    }
+  });
+
+  socket.on('game_started_client', (data) => {
+    state.currentGame = data.gameId;
+    if (data.gameId === 'liars-bar') {
+      showScreen('liars-bar');
+    } else {
+      // create screen if not exists
+      if (!$(`${data.gameId}-screen`)) {
+        const screen = document.createElement('div');
+        screen.className = 'screen';
+        screen.id = `${data.gameId}-screen`;
+        document.body.appendChild(screen);
+        screens[data.gameId] = screen;
+      }
+      showScreen(data.gameId);
+      
+      if (!document.getElementById(`script-${data.gameId}`)) {
+        const script = document.createElement('script');
+        script.id = `script-${data.gameId}`;
+        script.type = 'module';
+        script.src = `/games/${data.gameId}/ui.js`;
+        document.body.appendChild(script);
+      }
+    }
+  });
+
   // -- Game Start --
   socket.on('game_started', (data) => {
     state.gameActive = true;
-    showScreen('game');
+    showScreen('liars-bar');
     gameRoomCode.textContent = state.roomCode;
     document.querySelectorAll('.game-log-container').forEach(c => c.innerHTML = '');
     revealOverlay.classList.add('hidden');
@@ -1340,7 +1397,7 @@
     state.players = data.players;
     state.gameActive = true;
 
-    showScreen('game');
+    showScreen('liars-bar');
     gameRoomCode.textContent = state.roomCode;
     renderHand();
     renderOpponents(data.players, data.gameState.currentTeamIndex);
