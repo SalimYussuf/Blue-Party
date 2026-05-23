@@ -3,7 +3,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const Room = require('./server/Room');
 const Player = require('./server/Player');
-const GameEngine = require('./server/GameEngine');
+const gameManager = require('./server/GameManager');
 const { RECONNECT_TIMEOUT_MS } = require('./server/constants');
 
 const app = express();
@@ -35,6 +35,7 @@ const io = new Server(server, {
 });
 
 app.use(express.static('public'));
+app.use('/games', express.static('games'));
 
 // ========== HELPERS ==========
 
@@ -88,7 +89,7 @@ const RATE_LIMITED_EVENTS = {
 
 // ========== STATE ==========
 const rooms = new Map(); // roomCode -> Room
-const games = new Map(); // roomCode -> GameEngine
+
 const playerRooms = new Map(); // socketId -> roomCode
 const disconnectedPlayers = new Map(); // oldSocketId -> { roomCode, playerId, timeout }
 
@@ -136,6 +137,7 @@ io.on('connection', (socket) => {
       hostId: room.hostId,
       playerId: socket.id,
       settings: room.settings,
+      selectedGameId: room.selectedGameId,
     });
 
     console.log(`Room ${code} created by ${name}`);
@@ -182,7 +184,7 @@ io.on('connection', (socket) => {
       clearTimeout(data.timeout);
       disconnectedPlayers.delete(oldId);
 
-      const engine = games.get(code);
+      const engine = gameManager.getEngine(code);
       if (engine) {
         const success = engine.handleReconnect(oldId, socket.id);
         if (success) {
@@ -219,6 +221,7 @@ io.on('connection', (socket) => {
              hostId: room.hostId,
              playerId: socket.id,
              settings: room.settings,
+             selectedGameId: room.selectedGameId,
            });
            
            socket.to(code).emit('player_list_update', {
@@ -248,6 +251,7 @@ io.on('connection', (socket) => {
       hostId: room.hostId,
       playerId: socket.id,
       settings: room.settings,
+      selectedGameId: room.selectedGameId,
     });
 
     // Notify others
@@ -289,6 +293,25 @@ io.on('connection', (socket) => {
     io.to(roomCode).emit('settings_updated', { settings: updatedSettings });
   });
 
+  // ---------- CHANGE GAME ----------
+  socket.on('change_game', ({ roomCode, gameId }) => {
+    const room = rooms.get(roomCode);
+    if (!room) return;
+
+    if (socket.id !== room.hostId) {
+      socket.emit('error', { message: 'Only the host can change the game' });
+      return;
+    }
+
+    if (room.state !== 'waiting') {
+      socket.emit('error', { message: 'Cannot change game while playing' });
+      return;
+    }
+
+    room.selectedGameId = gameId;
+    io.to(roomCode).emit('room_game_changed', { gameId });
+  });
+
   // ---------- START GAME ----------
   socket.on('start_game', ({ roomCode }) => {
     const room = rooms.get(roomCode);
@@ -305,48 +328,25 @@ io.on('connection', (socket) => {
       return;
     }
 
-    const engine = new GameEngine(room, io);
-    games.set(roomCode, engine);
-
-    const result = engine.startGame();
+    const gameId = room.selectedGameId;
+    const result = gameManager.startGame(roomCode, gameId, room, io);
     if (!result.success) {
       socket.emit('error', { message: result.error });
-      games.delete(roomCode);
+      gameManager.endGame(roomCode);
+    } else {
+      io.to(roomCode).emit('game_started_client', { gameId });
     }
   });
 
-  // ---------- PLAY CARDS ----------
-  socket.on('play_cards', ({ roomCode, cardIds, declaredRank, declaredCount }) => {
-    if (rateCheck('play_cards')) return;
-    const engine = games.get(roomCode);
-    if (!engine) return;
+  // ---------- CATCH ALL EVENTS FOR GAME MANAGER ----------
+  socket.onAny((eventName, ...args) => {
+    // Ignore globally handled events
+    if (['create_room', 'join_room', 'change_game', 'start_game', 'select_game', 'disconnect', 'reconnect_attempt', 'player_ready', 'update_settings', 'leave_room', 'play_again', 'send_emoji', 'lobby_chat', 'kick_player'].includes(eventName)) return;
 
-    const result = engine.playCards(socket.id, cardIds, declaredRank, declaredCount);
-    if (!result.success) {
-      socket.emit('error', { message: 'Invalid action' });
-    }
-  });
-
-  // ---------- CALL LIAR ----------
-  socket.on('call_liar', ({ roomCode }) => {
-    if (rateCheck('call_liar')) return;
-    const engine = games.get(roomCode);
-    if (!engine) return;
-
-    const result = engine.callLiar(socket.id);
-    if (!result.success) {
-      socket.emit('error', { message: 'Invalid action' });
-    }
-  });
-
-  // ---------- SELECT TARGET ----------
-  socket.on('select_target', ({ roomCode, targetId }) => {
-    const engine = games.get(roomCode);
-    if (!engine) return;
-
-    const result = engine.selectTarget(socket.id, targetId);
-    if (!result.success) {
-      socket.emit('error', { message: 'Invalid action' });
+    const data = args[0] || {};
+    const roomCode = data.roomCode;
+    if (roomCode) {
+      gameManager.handleSocketEvent(socket, eventName, data, io, roomCode);
     }
   });
 
@@ -368,7 +368,7 @@ io.on('connection', (socket) => {
       player.resetRevolver();
     }
 
-    games.delete(roomCode);
+    gameManager.endGame(roomCode);
 
     io.to(roomCode).emit('back_to_lobby', {
       players: room.getPlayerList(),
@@ -448,7 +448,7 @@ io.on('connection', (socket) => {
     const room = rooms.get(roomCode);
     if (!room) return;
 
-    const engine = games.get(roomCode);
+    const engine = gameManager.getEngine(roomCode);
 
     if (engine && engine.state !== 'lobby' && engine.state !== 'game_over') {
       // Mid-game disconnect — give reconnection window
@@ -496,7 +496,7 @@ io.on('connection', (socket) => {
     clearTimeout(data.timeout);
     disconnectedPlayers.delete(oldId);
 
-    const engine = games.get(roomCode);
+    const engine = gameManager.getEngine(roomCode);
     if (!engine) return;
 
     const success = engine.handleReconnect(oldId, socket.id);
@@ -532,7 +532,7 @@ function handlePlayerLeave(socket, roomCode, forceRemove = false) {
 
   if (room.isEmpty()) {
     rooms.delete(roomCode);
-    games.delete(roomCode);
+    gameManager.endGame(roomCode);
     console.log(`Room ${roomCode} deleted (empty)`);
     return;
   }
@@ -548,7 +548,7 @@ function handlePlayerLeave(socket, roomCode, forceRemove = false) {
   });
 
   // Check if game should end (only 1 player left)
-  const engine = games.get(roomCode);
+  const engine = gameManager.getEngine(roomCode);
   if (engine) {
     const activePlayers = room.getActivePlayers();
     if (activePlayers.length <= 1 && engine.state !== 'game_over') {
@@ -564,7 +564,7 @@ setInterval(() => {
   for (const [code, room] of rooms) {
     if (room.isEmpty() || (room.getConnectedPlayers().length === 0 && now - room.createdAt > 3600000)) {
       rooms.delete(code);
-      games.delete(code);
+      gameManager.endGame(code);
       console.log(`Cleaned up stale room ${code}`);
     }
   }
