@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: uwongo-bar
+    name: Sal's_PartyBox
     runtime: node
     plan: free
     buildCommand: npm install
