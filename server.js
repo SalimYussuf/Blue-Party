@@ -82,7 +82,7 @@ const RATE_LIMITED_EVENTS = {
   join_room:    { max: 3, window: 5000 },
   play_cards:   { max: 3, window: 5000 },
   call_liar:    { max: 2, window: 5000 },
-  send_emoji:   { max: 3, window: 5000 },
+  send_emoji:   { max: 20, window: 5000 },
   lobby_chat:   { max: 3, window: 5000 },
   kick_player:  { max: 2, window: 5000 },
 };
