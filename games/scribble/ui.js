@@ -39,7 +39,7 @@ screen.innerHTML = `
         <div id="scribble-timer" style="font-size: 1.5rem; font-weight: bold; color: var(--emerald);">60</div>
       </div>
       
-<div class="glass scribble-canvas-wrap" style="position: relative; overflow: hidden; background: white; border-radius: 12px; cursor: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\'><circle cx=\'12\' cy=\'12\' r=\'10\' fill=\'none\' stroke=\'black\' stroke-width=\'2\'/><circle cx=\'12\' cy=\'12\' r=\'1\' fill=\'red\'/></svg>') 12 12, crosshair;">        
+<div class="glass scribble-canvas-wrap" style="position: relative; overflow: hidden; background: white; border-radius: 12px; cursor: url('data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'24\\' height=\\'24\\' viewBox=\\'0 0 24 24\\'><circle cx=\\'12\\' cy=\\'12\\' r=\\'10\\' fill=\\'none\\' stroke=\\'black\\' stroke-width=\\'2\\'/><circle cx=\\'12\\' cy=\\'12\\' r=\\'1\\' fill=\\'red\\'/></svg>') 12 12, crosshair;">        
 <canvas id="scribble-canvas" style="position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none;"></canvas>
 <div id="scribble-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10;">
           <h2 id="scribble-overlay-title" style="margin-bottom: 10px;">Waiting to start...</h2>
@@ -64,8 +64,8 @@ screen.innerHTML = `
   </div>
 
 <style>
-  html,
-  body {
+  /* ====== GLOBAL PROTECTIONS (PASSDOWN) ====== */
+  html, body {
     margin: 0;
     padding: 0;
     width: 100%;
@@ -86,14 +86,40 @@ screen.innerHTML = `
     padding: 20px;
     width: 100%;
     height: 100%;
-    max-width: 1900px;
-    margin: 0 auto;
+    max-width: none;              /* overridden by desktop break-out */
+    margin: 0;
     box-sizing: border-box;
     align-items: stretch;
     overflow: hidden;
   }
 
-  /* LEFT COLUMN */
+  /* -------- Canvas Protection -------- */
+  .scribble-canvas-wrap {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    background: white;
+    border-radius: 12px;
+    touch-action: none;
+    overscroll-behavior: contain;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    min-height: 260px;
+    max-height: 75vh;
+    flex-shrink: 0;
+  }
+
+  #scribble-canvas {
+    display: block;
+    touch-action: none;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* -------- Side Columns -------- */
   #scribble-layout > div:first-child {
     flex: 1;
     display: flex;
@@ -104,38 +130,6 @@ screen.innerHTML = `
     overflow: hidden;
   }
 
-  /* CENTER */
-  .scribble-center {
-    flex: 5 !important;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    min-width: 0;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  .scribble-canvas-wrap {
-    position: relative;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-    background: white;
-    border-radius: 12px;
-    touch-action: none;
-    overscroll-behavior: none;
-  }
-
-  #scribble-canvas {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
-    touch-action: none;
-  }
-
-  /* RIGHT COLUMN */
   #scribble-layout > div:last-child {
     flex: 1;
     min-width: 250px;
@@ -147,10 +141,11 @@ screen.innerHTML = `
   #scribble-chat-messages {
     flex: 1;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     min-height: 0;
   }
 
-  /* TOOL BUTTONS */
+  /* -------- Tools -------- */
   .color-btn {
     width: 30px;
     height: 30px;
@@ -169,7 +164,7 @@ screen.innerHTML = `
     transform: scale(1.1);
   }
 
-  /* CHAT */
+  /* -------- Chat Messages -------- */
   .scribble-msg {
     font-size: 0.9rem;
     word-break: break-word;
@@ -190,24 +185,23 @@ screen.innerHTML = `
     font-style: italic;
   }
 
-  /* MOBILE */
+  /* ====== MOBILE (max-width: 900px) ====== */
   @media (max-width: 900px) {
-    html,
-    body {
+    html, body {
       overflow: hidden;
     }
 
     #scribble-layout {
-      flex-direction: column;
-      gap: 12px;
-      padding: 10px;
+      flex-direction: column !important;
+      padding: 10px !important;
+      gap: 12px !important;
     }
 
     #scribble-layout > div:first-child,
     #scribble-layout > div:last-child {
-      min-width: 0;
-      max-width: 100%;
-      width: 100%;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      width: 100% !important;
     }
 
     .scribble-center {
@@ -229,7 +223,67 @@ screen.innerHTML = `
     }
 
     #scribble-chat-messages {
-      max-height: 160px;
+      max-height: 180px;
+    }
+  }
+
+  /* ====== DESKTOP FULL-WIDTH BREAK-OUT ====== */
+  /* (Fixes the 66% empty space on wider screens) */
+  @media (min-width: 901px) {
+    #scribble-screen {
+      width: 100vw;
+      max-width: 100vw;
+      margin-left: calc(-50vw + 50%);
+      margin-right: calc(-50vw + 50%);
+    }
+
+    #scribble-layout {
+      max-width: none;
+    }
+  }
+
+  /* ====== DESKTOP ENLARGEMENT (1200px+) ====== */
+  @media (min-width: 1200px) {
+    /* Widen side columns */
+    #scribble-layout > div:first-child {
+      min-width: 280px !important;
+      max-width: 320px !important;
+    }
+
+    #scribble-layout > div:last-child {
+      min-width: 320px !important;
+      max-width: 420px !important;
+    }
+
+    /* Larger base font */
+    #scribble-screen {
+      font-size: 17px;
+    }
+
+    #scribble-scores li {
+      font-size: 1.05rem;
+      padding: 8px 0;
+    }
+
+    .scribble-msg {
+      font-size: 1rem;
+    }
+
+    h3 {
+      font-size: 1.3rem;
+    }
+
+    #scribble-round-info,
+    #scribble-timer {
+      font-size: 1.2rem;
+    }
+
+    #scribble-word-display {
+      font-size: 2rem;
+    }
+
+    .glass {
+      padding: 20px !important;
     }
   }
 </style>
@@ -263,25 +317,10 @@ let lastY = 0;
 // Resize canvas properly
 function resizeCanvas() {
   const rect = canvas.parentElement.getBoundingClientRect();
-
-  const newWidth = Math.floor(rect.width);
-  const newHeight = Math.floor(rect.height);
-
-  if (canvas.width === newWidth && canvas.height === newHeight) {
-    return;
-  }
-
-  const imageData =
-    canvas.width > 0 && canvas.height > 0
-      ? ctx.getImageData(0, 0, canvas.width, canvas.height)
-      : null;
-
-  canvas.width = newWidth;
-  canvas.height = newHeight;
-
-  if (imageData) {
-    ctx.putImageData(imageData, 0, 0);
-  }
+  canvas.width = rect.width;
+  canvas.height = rect.height;
+  
+  // Need to redraw strokes if we resize, but skipping for simplicity
 }
 window.addEventListener('resize', resizeCanvas);
 // Call once shortly after mount to ensure layout is done
@@ -501,4 +540,10 @@ socket.on('scribble_correct_guess', (data) => {
   }
 });
 
-// Since the server emits game_over with rankings, we just reuse the existing Results screen.
+// Game over handler (optional, keep if server emits it)
+socket.on('game_over', (data) => {
+  // data.rankings: array of { id, name, score }
+  if (window.app.showResults) {
+    window.app.showResults(data.rankings);
+  }
+});
