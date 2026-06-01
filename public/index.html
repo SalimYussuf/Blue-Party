@@ -216,30 +216,12 @@
 
   <!-- ===== LIARS BAR SCREEN ===== -->
   <div class="screen" id="liars-bar-screen">
-    <!-- Desktop Corner Panel: Chat (Left) -->
-    <div class="desktop-corner-panel glass collapsed" id="desktop-chat-sidebar">
-      <div class="corner-panel-body">
-        <div class="game-chat-messages" id="game-chat-messages-desktop"></div>
-        <div class="input-row">
-          <input type="text" id="game-chat-input-desktop" placeholder="Message..." maxlength="100" autocomplete="off">
-          <button class="btn btn-emerald btn-sm btn-no-shrink" id="btn-send-game-chat-desktop">Send</button>
-        </div>
-      </div>
-      <div class="corner-panel-header">
-        <h3>Chat</h3>
-        <button class="btn-toggle-panel" id="btn-toggle-chat-desktop">▼</button>
-      </div>
-    </div>
-
-    <!-- Desktop Corner Panel: Log (Right) -->
-    <div class="desktop-corner-panel glass collapsed" id="desktop-log-sidebar">
-      <div class="corner-panel-body">
-        <div class="game-log-container" id="game-log-desktop"></div>
-      </div>
-      <div class="corner-panel-header">
-        <h3>Game Log</h3>
-        <button class="btn-toggle-panel" id="btn-toggle-log-desktop">▼</button>
-      </div>
+    
+    <!-- Russian Roulette Animation Container -->
+    <div id="roulette-container" class="hidden">
+      <div class="chamber"></div>
+      <div class="glass-shatter hidden"></div>
+      <div class="flash hidden"></div>
     </div>
 
     <!-- Spectator Banner -->
@@ -247,37 +229,10 @@
       💀 Spectating — You have been eliminated
     </div>
 
-    <!-- Mobile Side Panel (Sidebar) -->
-    <div class="game-side-panel glass closed" id="game-side-panel">
-      <div class="side-panel-header">
-        <div class="side-panel-tabs">
-          <button class="panel-tab active" data-tab="log">Log</button>
-          <button class="panel-tab" data-tab="chat">Chat</button>
-        </div>
-        <button class="side-panel-close" id="btn-close-side">✕</button>
-      </div>
-
-      <div class="side-panel-content">
-        <!-- Log Section -->
-        <div class="side-section active" id="side-section-log">
-          <div class="game-log-container" id="game-log-mobile"></div>
-        </div>
-        <!-- Chat Section -->
-        <div class="side-section" id="side-section-chat">
-          <div class="game-chat-messages" id="game-chat-messages-mobile"></div>
-          <div class="input-row">
-            <input type="text" id="game-chat-input-mobile" placeholder="Type a message..." maxlength="100" autocomplete="off">
-            <button class="btn btn-emerald btn-sm" id="btn-send-game-chat-mobile">Send</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="game-layout" id="game-layout">
+    <div class="casino-table" id="game-layout">
       <!-- Top bar -->
       <div class="game-top-bar glass">
         <div style="display:flex;align-items:center;gap:12px">
-          <button class="btn-icon mobile-only" id="btn-toggle-side" title="Toggle Log/Chat">☰</button>
           <div class="room-info">Room: <span id="game-room-code"></span></div>
         </div>
         
@@ -363,6 +318,33 @@
 
         <div class="hand-area">
           <div class="hand-container" id="hand-container"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile/Desktop Bottom Sheet: Chat & Log -->
+    <button class="btn-bottom-sheet-toggle" id="btn-toggle-bottom-sheet">💬 Chat & Log</button>
+    <div class="bottom-sheet glass closed" id="bottom-sheet">
+      <div class="bottom-sheet-header">
+        <div class="bottom-sheet-tabs">
+          <button class="sheet-tab active" data-tab="log">Log</button>
+          <button class="sheet-tab" data-tab="chat">Chat</button>
+        </div>
+        <button class="sheet-close" id="btn-close-bottom-sheet">▼</button>
+      </div>
+
+      <div class="bottom-sheet-content">
+        <!-- Log Section -->
+        <div class="sheet-section active" id="sheet-section-log">
+          <div class="game-log-container" id="game-log-mobile"></div>
+        </div>
+        <!-- Chat Section -->
+        <div class="sheet-section" id="sheet-section-chat">
+          <div class="game-chat-messages" id="game-chat-messages-mobile"></div>
+          <div class="input-row">
+            <input type="text" id="game-chat-input-mobile" placeholder="Message..." maxlength="100" autocomplete="off">
+            <button class="btn btn-emerald btn-sm" id="btn-send-game-chat-mobile">Send</button>
+          </div>
         </div>
       </div>
     </div>

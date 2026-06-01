@@ -101,21 +101,15 @@
   const countdownOverlay = $('countdown-overlay');
   const countdownNumber = $('countdown-number');
 
-  // Game Panels
-  const sidePanel = $('game-side-panel');
-  const btnToggleSide = $('btn-toggle-side');
-  const btnCloseSide = $('btn-close-side');
-  const panelTabs = document.querySelectorAll('.panel-tab');
-  
-  const chatSidebarDesktop = $('desktop-chat-sidebar');
-  const logSidebarDesktop = $('desktop-log-sidebar');
-  const btnToggleChatDesktop = $('btn-toggle-chat-desktop');
-  const btnToggleLogDesktop = $('btn-toggle-log-desktop');
+  // Game Panels — Bottom Sheet
+  const bottomSheet = $('bottom-sheet');
+  const btnToggleBottomSheet = $('btn-toggle-bottom-sheet');
+  const btnCloseBottomSheet = $('btn-close-bottom-sheet');
+  const sheetTabs = document.querySelectorAll('.sheet-tab');
+  const sheetSections = document.querySelectorAll('.sheet-section');
   
   const btnSendGameChatMobile = $('btn-send-game-chat-mobile');
-  const btnSendGameChatDesktop = $('btn-send-game-chat-desktop');
   
-  const sideSections = document.querySelectorAll('.side-section');
   const gameLayout = $('game-layout');
 
   // Overlays
@@ -222,22 +216,16 @@
   helpModal.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.classList.add('hidden'); });
 
   // Unified Chat (Lobby chat removed, only game chat remains)
-  function sendChatMessage(type) {
-    let input;
-    if (type === 'mobile') input = $('game-chat-input-mobile');
-    else if (type === 'desktop') input = $('game-chat-input-desktop');
-
+  function sendChatMessage() {
+    const input = $('game-chat-input-mobile');
     const msg = input?.value.trim();
     if (!msg || !state.roomCode) return;
     socket.emit('lobby_chat', { roomCode: state.roomCode, message: msg });
     input.value = '';
   }
 
-  btnSendGameChatMobile?.addEventListener('click', () => sendChatMessage('mobile'));
-  $('game-chat-input-mobile')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage('mobile'); });
-  
-  btnSendGameChatDesktop?.addEventListener('click', () => sendChatMessage('desktop'));
-  $('game-chat-input-desktop')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage('desktop'); });
+  btnSendGameChatMobile?.addEventListener('click', () => sendChatMessage());
+  $('game-chat-input-mobile')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage(); });
 
   socket.on('lobby_chat_message', (data) => {
     // Only game chat containers remain
@@ -259,30 +247,19 @@
     });
   });
 
-  // Panel Logic
-  function toggleSidePanel() {
-    sidePanel.classList.toggle('closed');
+  // Bottom Sheet Logic
+  function toggleBottomSheet() {
+    bottomSheet?.classList.toggle('closed');
   }
-  btnToggleSide?.addEventListener('click', toggleSidePanel);
-  btnCloseSide?.addEventListener('click', toggleSidePanel);
+  btnToggleBottomSheet?.addEventListener('click', toggleBottomSheet);
+  btnCloseBottomSheet?.addEventListener('click', () => bottomSheet?.classList.add('closed'));
 
-  btnToggleChatDesktop?.addEventListener('click', () => chatSidebarDesktop.classList.toggle('collapsed'));
-  btnToggleLogDesktop?.addEventListener('click', () => logSidebarDesktop.classList.toggle('collapsed'));
-  
-  // Also allow clicking header to toggle
-  chatSidebarDesktop?.querySelector('.corner-panel-header')?.addEventListener('click', (e) => {
-    if (e.target.tagName !== 'BUTTON') chatSidebarDesktop.classList.toggle('collapsed');
-  });
-  logSidebarDesktop?.querySelector('.corner-panel-header')?.addEventListener('click', (e) => {
-    if (e.target.tagName !== 'BUTTON') logSidebarDesktop.classList.toggle('collapsed');
-  });
-
-  panelTabs.forEach(tab => {
+  sheetTabs.forEach(tab => {
     tab.addEventListener('click', () => {
       const target = tab.dataset.tab;
-      panelTabs.forEach(t => t.classList.toggle('active', t === tab));
-      sideSections.forEach(sec => {
-        sec.classList.toggle('active', sec.id === `side-section-${target}`);
+      sheetTabs.forEach(t => t.classList.toggle('active', t === tab));
+      sheetSections.forEach(sec => {
+        sec.classList.toggle('active', sec.id === `sheet-section-${target}`);
       });
     });
   });
@@ -1320,10 +1297,14 @@
     console.log('Devil Card Triggered', data);
   });
 
-  // -- Revolver --
+  // -- Revolver (Enhanced Casino) --
   socket.on('revolver_result', (data) => {
     revealOverlay.classList.add('hidden');
     revolverOverlay.classList.remove('hidden');
+
+    // Remove old dynamic elements
+    revolverOverlay.querySelectorAll('.glass-crack, .muzzle-flash').forEach(el => el.remove());
+    revolverOverlay.classList.remove('screen-shake');
 
     const revolverEmoji = document.querySelector('.revolver-emoji');
     revolverEmoji.textContent = '🔫';
@@ -1336,23 +1317,41 @@
     revolverResult.textContent = '';
 
     setTimeout(() => {
+      // Add muzzle flash
+      const flash = document.createElement('div');
+      flash.className = 'muzzle-flash fire';
+      revolverOverlay.appendChild(flash);
+
       if (data.fired) {
         revolverEmoji.textContent = data.isEliminated ? '💀' : '💥';
         revolverEmoji.className = 'revolver-emoji ' + (data.isEliminated ? 'eliminated' : 'fired');
         revolverResult.className = 'revolver-result eliminated';
         revolverResult.textContent = data.isEliminated ? 'BANG! Eliminated!' : 'BANG! haha ded';
-        if (data.isEliminated) playSound('player_eliminated');
+
+        // Screen shake
+        revolverOverlay.classList.add('screen-shake');
+
+        if (data.isEliminated) {
+          playSound('player_eliminated');
+          // Glass crack effect
+          const crack = document.createElement('div');
+          crack.className = 'glass-crack';
+          revolverOverlay.appendChild(crack);
+          setTimeout(() => crack.classList.add('visible'), 100);
+        }
       } else {
         revolverEmoji.textContent = '😮‍💨';
         revolverEmoji.className = 'revolver-emoji safe';
         revolverResult.className = 'revolver-result survived';
         revolverResult.textContent = 'Click... Survived!';
       }
-    }, 1500);
+    }, 1800);
 
     setTimeout(() => {
       revolverOverlay.classList.add('hidden');
-    }, 4500);
+      revolverOverlay.classList.remove('screen-shake');
+      revolverOverlay.querySelectorAll('.glass-crack, .muzzle-flash').forEach(el => el.remove());
+    }, 5000);
   });
 
   socket.on('player_eliminated', (data) => {
