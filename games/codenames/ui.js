@@ -4,148 +4,443 @@ const state = window.app.state;
 const screen = document.getElementById('codenames-screen');
 
 screen.innerHTML = `
-  <div class="game-layout" id="codenames-layout" style="display: flex; flex-direction: column; height: 100vh; padding: 20px; box-sizing: border-box;">
+  <div class="game-layout" id="cn-layout">
     
     <!-- TOP BAR -->
-    <div class="glass" style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-      <div id="cn-score-red" style="color: #ef4444; font-size: 1.5rem; font-weight: bold; flex: 1;">RED: 0 / 9</div>
+    <div class="cn-topbar">
+      <div id="cn-score-red" class="cn-score cn-red-text">RED: 0 / 9</div>
       
-      <div id="cn-status-banner" style="flex: 2; text-align: center; font-size: 1.5rem; font-weight: bold; letter-spacing: 2px;">
-        TEAM SELECTION
+      <div id="cn-status-banner" class="cn-status-banner">
+        <span class="glitch-text" data-text="CLASSIFIED INTEL">CLASSIFIED INTEL</span>
       </div>
       
-      <div id="cn-score-blue" style="color: #3b82f6; font-size: 1.5rem; font-weight: bold; flex: 1; text-align: right;">BLUE: 0 / 8</div>
+      <div id="cn-score-blue" class="cn-score cn-blue-text">BLUE: 0 / 8</div>
     </div>
 
     <!-- TEAM SELECTION VIEW -->
-    <div id="cn-team-selection" style="display: flex; gap: 20px; flex: 1;">
+    <div id="cn-team-selection" class="cn-dossier-view">
       
-      <!-- RED TEAM -->
-      <div class="glass" style="flex: 1; border-top: 5px solid #ef4444; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 20px;">
-        <h2 style="color: #ef4444; text-align: center; margin: 0;">RED TEAM</h2>
-        
-        <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
-          <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px;">
-            <h3 style="margin: 0 0 10px 0; color: #fca5a5;">Spymaster (Max 1)</h3>
-            <ul id="cn-red-spymasters" style="list-style: none; padding: 0; margin: 0 0 15px 0; min-height: 24px;"></ul>
-            <button class="btn btn-outline btn-block btn-sm" onclick="joinTeam('red', 'spymaster')">Join as Spymaster</button>
+      <!-- RED TEAM DOSSIER -->
+      <div class="cn-dossier cn-dossier-red">
+        <div class="dossier-header">RED AGENCY</div>
+        <div class="dossier-content">
+          <div class="role-section">
+            <h3 class="role-title">SPYMASTER (1)</h3>
+            <ul id="cn-red-spymasters" class="agent-list"></ul>
+            <button class="cn-btn cn-btn-red" onclick="joinTeam('red', 'spymaster')">ASSIGN SPYMASTER</button>
           </div>
-          
-          <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; flex: 1;">
-            <h3 style="margin: 0 0 10px 0; color: #fca5a5;">Operatives</h3>
-            <ul id="cn-red-operatives" style="list-style: none; padding: 0; margin: 0 0 15px 0; min-height: 24px;"></ul>
-            <button class="btn btn-outline btn-block btn-sm" onclick="joinTeam('red', 'operative')">Join as Operative</button>
+          <div class="role-section flex-1">
+            <h3 class="role-title">FIELD AGENTS</h3>
+            <ul id="cn-red-operatives" class="agent-list"></ul>
+            <button class="cn-btn cn-btn-red" onclick="joinTeam('red', 'operative')">ASSIGN AGENT</button>
           </div>
         </div>
       </div>
 
-      <!-- BLUE TEAM -->
-      <div class="glass" style="flex: 1; border-top: 5px solid #3b82f6; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 20px;">
-        <h2 style="color: #3b82f6; text-align: center; margin: 0;">BLUE TEAM</h2>
-        
-        <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
-          <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px;">
-            <h3 style="margin: 0 0 10px 0; color: #93c5fd;">Spymaster (Max 1)</h3>
-            <ul id="cn-blue-spymasters" style="list-style: none; padding: 0; margin: 0 0 15px 0; min-height: 24px;"></ul>
-            <button class="btn btn-outline btn-block btn-sm" onclick="joinTeam('blue', 'spymaster')">Join as Spymaster</button>
+      <!-- BLUE TEAM DOSSIER -->
+      <div class="cn-dossier cn-dossier-blue">
+        <div class="dossier-header">BLUE AGENCY</div>
+        <div class="dossier-content">
+          <div class="role-section">
+            <h3 class="role-title">SPYMASTER (1)</h3>
+            <ul id="cn-blue-spymasters" class="agent-list"></ul>
+            <button class="cn-btn cn-btn-blue" onclick="joinTeam('blue', 'spymaster')">ASSIGN SPYMASTER</button>
           </div>
-          
-          <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; flex: 1;">
-            <h3 style="margin: 0 0 10px 0; color: #93c5fd;">Operatives</h3>
-            <ul id="cn-blue-operatives" style="list-style: none; padding: 0; margin: 0 0 15px 0; min-height: 24px;"></ul>
-            <button class="btn btn-outline btn-block btn-sm" onclick="joinTeam('blue', 'operative')">Join as Operative</button>
+          <div class="role-section flex-1">
+            <h3 class="role-title">FIELD AGENTS</h3>
+            <ul id="cn-blue-operatives" class="agent-list"></ul>
+            <button class="cn-btn cn-btn-blue" onclick="joinTeam('blue', 'operative')">ASSIGN AGENT</button>
           </div>
         </div>
       </div>
       
-      <!-- SPECTATORS & START -->
-      <div class="glass" style="flex: 1; border-top: 5px solid var(--emerald); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 20px;">
-        <h2 style="color: var(--emerald); text-align: center; margin: 0;">UNASSIGNED</h2>
-        
-        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; flex: 1;">
-          <ul id="cn-unassigned" style="list-style: none; padding: 0; margin: 0;"></ul>
+      <!-- UNASSIGNED -->
+      <div class="cn-dossier cn-dossier-neutral">
+        <div class="dossier-header">PENDING CLEARANCE</div>
+        <div class="dossier-content">
+          <div class="role-section flex-1">
+            <ul id="cn-unassigned" class="agent-list"></ul>
+          </div>
+          <button class="cn-btn cn-btn-gold" id="cn-btn-start-match" style="display: none;">INITIATE OPERATION</button>
+          <p id="cn-waiting-host" class="typewriter-text">Awaiting Commander...</p>
         </div>
-        
-        <button class="btn btn-gold btn-block" id="cn-btn-start-match" style="display: none; font-size: 1.2rem; padding: 15px;">START MATCH</button>
-        <p id="cn-waiting-host" style="text-align: center; color: var(--text-dim);">Waiting for host to start...</p>
       </div>
     </div>
 
     <!-- PLAYING VIEW -->
-    <div id="cn-playing-view" style="display: none; flex-direction: column; flex: 1; gap: 20px;">
+    <div id="cn-playing-view" style="display: none; flex-direction: column; flex: 1; position: relative;">
       
-      <!-- ACTION BAR -->
-      <div class="glass" id="cn-action-bar" style="padding: 15px; border-radius: 12px; display: flex; gap: 15px; align-items: center; justify-content: center; background: rgba(0,0,0,0.5);">
+      <!-- BOARD GRID -->
+      <div id="cn-board-grid"></div>
+      
+      <!-- ACTION BAR (Floating Bottom) -->
+      <div id="cn-action-bar" class="cn-floating-controls">
         
         <!-- Spymaster Clue Input -->
-        <div id="cn-spymaster-controls" style="display: none; gap: 10px; width: 100%; max-width: 600px;">
-          <input type="text" id="cn-clue-word" placeholder="One Word Clue..." style="flex: 2; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.8); color: white; font-size: 1.1rem; text-transform: uppercase;">
-          <input type="number" id="cn-clue-count" placeholder="#" min="0" max="9" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.8); color: white; font-size: 1.1rem;">
-          <button class="btn btn-emerald" id="cn-btn-submit-clue" style="flex: 1;">GIVE CLUE</button>
+        <div id="cn-spymaster-controls" style="display: none; gap: 15px; width: 100%; max-width: 700px; margin: 0 auto;">
+          <input type="text" id="cn-clue-word" placeholder="TRANSMIT CLUE..." class="cn-input" autocomplete="off">
+          <input type="number" id="cn-clue-count" placeholder="#" min="0" max="9" class="cn-input cn-input-num">
+          <button class="cn-btn cn-btn-gold" id="cn-btn-submit-clue">TRANSMIT</button>
         </div>
         
         <!-- Operative Guess Controls -->
-        <div id="cn-operative-controls" style="display: none; gap: 20px; align-items: center;">
-          <div id="cn-current-clue-display" style="font-size: 1.5rem; letter-spacing: 2px;">
-            CLUE: <span id="cn-clue-text" style="color: var(--gold); font-weight: bold;">NONE</span> 
-            <span style="color: var(--text-dim);">|</span> 
-            GUESSES LEFT: <span id="cn-guesses-text" style="color: var(--gold); font-weight: bold;">0</span>
+        <div id="cn-operative-controls" style="display: none; gap: 30px; align-items: center; justify-content: center; width: 100%;">
+          <div class="cn-intel-display">
+            INTEL: <span id="cn-clue-text" class="intel-highlight">NONE</span> 
+            <span class="intel-divider">|</span> 
+            REMAINING: <span id="cn-guesses-text" class="intel-highlight">0</span>
           </div>
-          <button class="btn btn-outline" id="cn-btn-end-guess">END GUESSING</button>
+          <button class="cn-btn cn-btn-outline" id="cn-btn-end-guess">CEASE ACTION</button>
         </div>
         
       </div>
-
-      <!-- BOARD GRID -->
-      <div id="cn-board-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; flex: 1; margin: 0 auto; width: 100%; max-width: 1000px; padding-bottom: 20px;">
-        <!-- Cards injected here -->
-      </div>
-      
     </div>
   </div>
 
   <style>
-    .cn-card {
-      background: #e5e5e5;
-      border-radius: 8px;
+    /* Global Codenames Theme */
+    @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Share+Tech+Mono&display=swap');
+
+    #cn-layout {
+      font-family: 'Courier Prime', monospace;
+      background: radial-gradient(circle at center, #1a1a1a, #0a0a0a);
+      color: #e5e5e5;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Scanline overlay */
+    #cn-layout::before {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      z-index: 2;
+      background-size: 100% 2px, 3px 100%;
+      pointer-events: none;
+    }
+
+    /* Topbar */
+    .cn-topbar {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 30px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .cn-score {
+      font-size: 1.8rem;
+      font-weight: bold;
+      flex: 1;
+      font-family: 'Share Tech Mono', monospace;
+    }
+    
+    .cn-red-text { color: #ef4444; text-shadow: 0 0 10px rgba(239,68,68,0.5); }
+    .cn-blue-text { color: #3b82f6; text-shadow: 0 0 10px rgba(59,130,246,0.5); text-align: right; }
+
+    .cn-status-banner {
+      flex: 2;
+      text-align: center;
+      font-size: 2rem;
+      font-weight: bold;
+      letter-spacing: 4px;
+      font-family: 'Share Tech Mono', monospace;
+      text-transform: uppercase;
+      transition: color 0.3s;
+    }
+
+    /* Dossier Views */
+    .cn-dossier-view {
+      display: flex;
+      gap: 20px;
+      flex: 1;
+      position: relative;
+      z-index: 10;
+      padding-bottom: 20px;
+    }
+
+    .cn-dossier {
+      flex: 1;
+      background: #e6dfd3; /* Manila folder color */
+      border-radius: 4px 20px 4px 4px;
+      box-shadow: 5px 5px 15px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      color: #222;
+    }
+
+    .cn-dossier::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: 10px;
+      width: 80px;
+      height: 20px;
+      background: inherit;
+      border-radius: 5px 5px 0 0;
+      box-shadow: inset 0 5px 5px rgba(0,0,0,0.05);
+    }
+
+    .dossier-header {
+      padding: 15px 20px;
+      font-size: 1.8rem;
+      font-weight: bold;
+      border-bottom: 2px solid rgba(0,0,0,0.1);
+      text-align: center;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .cn-dossier-red .dossier-header { color: #b91c1c; border-bottom-color: #fca5a5; }
+    .cn-dossier-blue .dossier-header { color: #1d4ed8; border-bottom-color: #93c5fd; }
+    .cn-dossier-neutral .dossier-header { color: #444; border-bottom-color: #ccc; }
+
+    .dossier-content {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      flex: 1;
+    }
+
+    .role-section {
+      background: rgba(255,255,255,0.4);
+      padding: 15px;
+      border: 1px dashed rgba(0,0,0,0.2);
+      border-radius: 2px;
+    }
+    
+    .flex-1 { flex: 1; }
+
+    .role-title {
+      margin: 0 0 10px 0;
+      font-size: 1.1rem;
+      color: #555;
+      text-decoration: underline;
+    }
+
+    .agent-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 15px 0;
+      min-height: 24px;
+    }
+
+    .cn-player-item {
+      padding: 8px 10px;
+      margin-bottom: 5px;
+      background: rgba(0,0,0,0.05);
+      border-left: 3px solid transparent;
+      font-family: 'Courier Prime', monospace;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+    }
+    .cn-player-item::before { content: '>'; margin-right: 8px; color: #888; }
+    .cn-player-item.me { border-left-color: #fbbf24; background: rgba(251,191,36,0.1); }
+
+    /* Buttons */
+    .cn-btn {
+      width: 100%;
+      padding: 12px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 2px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      letter-spacing: 1px;
+    }
+
+    .cn-btn-red { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .cn-btn-red:hover { background: #fecaca; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(239,68,68,0.2); }
+    
+    .cn-btn-blue { background: #dbeafe; color: #1e3a8a; border: 1px solid #93c5fd; }
+    .cn-btn-blue:hover { background: #bfdbfe; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(59,130,246,0.2); }
+    
+    .cn-btn-gold { background: #fbbf24; color: #000; box-shadow: 0 0 10px rgba(251,191,36,0.3); }
+    .cn-btn-gold:hover { background: #f59e0b; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(251,191,36,0.5); }
+    
+    .cn-btn-outline { background: transparent; color: #e5e5e5; border: 1px solid #e5e5e5; }
+    .cn-btn-outline:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+
+    .typewriter-text { text-align: center; color: #555; font-style: italic; }
+
+    /* Floating Controls */
+    .cn-floating-controls {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 800px;
+      background: rgba(10, 10, 10, 0.85);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      padding: 20px;
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.8);
+      z-index: 20;
+      backdrop-filter: blur(5px);
+    }
+
+    .cn-input {
+      padding: 12px 15px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.6);
+      color: #fbbf24;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.2rem;
+      flex: 2;
+      text-transform: uppercase;
+      outline: none;
+    }
+    .cn-input:focus { border-color: #fbbf24; box-shadow: 0 0 10px rgba(251,191,36,0.2); }
+    .cn-input-num { flex: 1; text-align: center; }
+
+    .cn-intel-display {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.5rem;
+      letter-spacing: 2px;
+      color: #ccc;
+    }
+    .intel-highlight { color: #fbbf24; font-weight: bold; text-shadow: 0 0 8px rgba(251,191,36,0.4); }
+    .intel-divider { color: #444; margin: 0 15px; }
+
+    /* Board Grid & Cards */
+    #cn-board-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 15px;
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding-bottom: 100px; /* space for floating controls */
+      perspective: 1200px;
+      z-index: 10;
+    }
+
+    .cn-card-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1.8 / 1;
+      cursor: pointer;
+    }
+
+    .cn-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+      transform-style: preserve-3d;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+      border-radius: 4px;
+    }
+
+    .cn-card-wrapper:hover .cn-card-inner:not(.is-flipped) {
+      transform: translateY(-5px) rotateX(5deg);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.6);
+    }
+
+    .cn-card-front, .cn-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.2rem;
-      font-weight: 900;
-      color: #333;
+      border-radius: 4px;
+      font-size: 1.1rem;
+      font-weight: bold;
       text-transform: uppercase;
-      cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-      transition: transform 0.1s, box-shadow 0.1s;
       user-select: none;
-      position: relative;
-      overflow: hidden;
-      min-height: 80px;
+      padding: 10px;
+      box-sizing: border-box;
+      word-break: break-word;
+    }
+
+    /* Front (Manila Folder style) */
+    .cn-card-front {
+      background: #e6dfd3 url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100" height="100" filter="url(%23noise)" opacity="0.05"/></svg>');
+      color: #111;
+      border: 1px solid #ccc;
     }
     
-    .cn-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 10px rgba(0,0,0,0.4);
+    /* Typewriter text styling */
+    .cn-word-text {
+      background: rgba(255,255,255,0.5);
+      padding: 5px 10px;
+      border-radius: 2px;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+      border: 1px dotted #aaa;
+      letter-spacing: 1px;
     }
+
+    /* Spymaster Front Hints */
+    .spy-view .spy-red { border: 3px solid #ef4444; box-shadow: inset 0 0 15px rgba(239,68,68,0.3); }
+    .spy-view .spy-blue { border: 3px solid #3b82f6; box-shadow: inset 0 0 15px rgba(59,130,246,0.3); }
+    .spy-view .spy-neutral { border: 3px solid #78716c; box-shadow: inset 0 0 15px rgba(120,113,108,0.3); }
+    .spy-view .spy-black { border: 3px solid #111; box-shadow: inset 0 0 15px rgba(0,0,0,0.5); background-color: #d6d3d1; }
     
-    /* Spymaster hints (unrevealed) */
-    .cn-card.spy-red { background: #fecaca; color: #991b1b; border: 2px solid #ef4444; box-shadow: inset 0 0 8px rgba(239,68,68,0.3); }
-    .cn-card.spy-blue { background: #bfdbfe; color: #1e3a8a; border: 2px solid #3b82f6; box-shadow: inset 0 0 8px rgba(59,130,246,0.3); }
-    .cn-card.spy-neutral { background: #e7e5e4; color: #57534e; border: 2px solid #a8a29e; box-shadow: inset 0 0 8px rgba(168,162,158,0.3); }
-    .cn-card.spy-black { background: #9ca3af; color: #111827; border: 2px solid #374151; box-shadow: inset 0 0 8px rgba(17,17,17,0.3); }
+    .spy-view .spy-red .cn-word-text { color: #b91c1c; }
+    .spy-view .spy-blue .cn-word-text { color: #1d4ed8; }
+    .spy-view .spy-neutral .cn-word-text { color: #444; }
+    .spy-view .spy-black .cn-word-text { color: #000; text-decoration: line-through; }
+
+    /* Back (Revealed states) */
+    .cn-card-back {
+      transform: rotateY(180deg);
+      border: 2px solid transparent;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .is-flipped { transform: rotateY(180deg); }
+
+    .rev-red { background: #7f1d1d; color: #fca5a5; border-color: #ef4444; box-shadow: inset 0 0 20px rgba(239,68,68,0.5); }
+    .rev-blue { background: #1e3a8a; color: #93c5fd; border-color: #3b82f6; box-shadow: inset 0 0 20px rgba(59,130,246,0.5); }
+    .rev-neutral { background: #292524; color: #a8a29e; border-color: #78716c; }
+    .rev-black { background: #000000; color: #ef4444; border-color: #ef4444; box-shadow: 0 0 15px #ef4444; }
+
+    .stamp {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.5rem;
+      border: 3px solid currentColor;
+      padding: 5px 10px;
+      border-radius: 5px;
+      transform: rotate(-15deg);
+      opacity: 0.8;
+      margin-top: 5px;
+    }
+
+    /* Pulse animation for active turn */
+    @keyframes pulse-red { 0% { box-shadow: 0 0 10px rgba(239,68,68,0.5); } 50% { box-shadow: 0 0 25px rgba(239,68,68,0.9); } 100% { box-shadow: 0 0 10px rgba(239,68,68,0.5); } }
+    @keyframes pulse-blue { 0% { box-shadow: 0 0 10px rgba(59,130,246,0.5); } 50% { box-shadow: 0 0 25px rgba(59,130,246,0.9); } 100% { box-shadow: 0 0 10px rgba(59,130,246,0.5); } }
     
-    /* Revealed states */
-    .cn-card.rev-red { background: #ef4444; color: white; border: none; cursor: default; }
-    .cn-card.rev-blue { background: #3b82f6; color: white; border: none; cursor: default; }
-    .cn-card.rev-neutral { background: #d6d3d1; color: #666; border: none; cursor: default; }
-    .cn-card.rev-black { background: #1f2937; color: white; border: none; cursor: default; }
-    
-    .cn-card.revealed:hover { transform: none; box-shadow: none; }
-    
-    /* Role tags in lobby */
-    .cn-player-item { padding: 5px; margin-bottom: 5px; border-radius: 4px; background: rgba(255,255,255,0.1); }
-    .cn-player-item.me { border-left: 3px solid var(--emerald); font-weight: bold; }
+    .turn-red { animation: pulse-red 2s infinite; border-bottom: 2px solid #ef4444; }
+    .turn-blue { animation: pulse-blue 2s infinite; border-bottom: 2px solid #3b82f6; }
+
   </style>
 `;
 
@@ -181,7 +476,8 @@ const ui = {
   guessesText: document.getElementById('cn-guesses-text'),
   btnEndGuess: document.getElementById('cn-btn-end-guess'),
   
-  boardGrid: document.getElementById('cn-board-grid')
+  boardGrid: document.getElementById('cn-board-grid'),
+  actionBar: document.getElementById('cn-action-bar')
 };
 
 // LISTENERS
@@ -217,8 +513,9 @@ socket.on('codenames_state', (data) => {
   if (data.state === 'team_selection') {
     ui.teamView.style.display = 'flex';
     ui.playView.style.display = 'none';
-    ui.statusBanner.textContent = 'TEAM SELECTION';
-    ui.statusBanner.style.color = 'white';
+    ui.statusBanner.innerHTML = '<span class="glitch-text" data-text="AGENT ASSIGNMENT">AGENT ASSIGNMENT</span>';
+    ui.statusBanner.style.color = '#e5e5e5';
+    ui.actionBar.classList.remove('turn-red', 'turn-blue');
     
     // Clear lists
     ui.redSpy.innerHTML = ''; ui.redOp.innerHTML = '';
@@ -256,11 +553,15 @@ socket.on('codenames_state', (data) => {
     const isMyTurn = (me && me.team === data.currentTurn);
     
     if (data.currentTurn === 'red') {
-      ui.statusBanner.textContent = data.turnPhase === 'clue' ? 'RED SPYMASTER TURN' : 'RED TEAM GUESSING';
+      ui.statusBanner.innerHTML = data.turnPhase === 'clue' ? 'RED SPYMASTER TURN' : 'RED TEAM GUESSING';
       ui.statusBanner.style.color = '#ef4444';
+      ui.actionBar.classList.remove('turn-blue');
+      ui.actionBar.classList.add('turn-red');
     } else {
-      ui.statusBanner.textContent = data.turnPhase === 'clue' ? 'BLUE SPYMASTER TURN' : 'BLUE TEAM GUESSING';
+      ui.statusBanner.innerHTML = data.turnPhase === 'clue' ? 'BLUE SPYMASTER TURN' : 'BLUE TEAM GUESSING';
       ui.statusBanner.style.color = '#3b82f6';
+      ui.actionBar.classList.remove('turn-red');
+      ui.actionBar.classList.add('turn-blue');
     }
     
     // Controls
@@ -288,20 +589,21 @@ socket.on('codenames_state', (data) => {
   else if (data.state === 'game_over') {
     ui.statusBanner.textContent = `${data.winner.toUpperCase()} TEAM WINS!`;
     ui.statusBanner.style.color = data.winner === 'red' ? '#ef4444' : '#3b82f6';
+    ui.actionBar.classList.remove('turn-red', 'turn-blue');
     
     ui.spyControls.style.display = 'none';
     ui.opControls.style.display = 'none';
     
-    // In a real flow, we'd maybe emit play_again from host, but here host can just click play_again from standard results if we had it,
-    // Or we just leave the board visible. For Party Box, usually we want a Back To Lobby.
-    // Let's add a button dynamically for the host
     if (state.isHost && !document.getElementById('cn-btn-play-again')) {
       const btn = document.createElement('button');
       btn.id = 'cn-btn-play-again';
-      btn.className = 'btn btn-gold';
+      btn.className = 'cn-btn cn-btn-gold';
       btn.textContent = 'PLAY AGAIN / BACK TO LOBBY';
+      btn.style.width = 'auto';
+      btn.style.margin = '0 auto';
+      btn.style.display = 'block';
       btn.onclick = () => window.app.socket.emit('play_again', { roomCode: state.roomCode });
-      document.getElementById('cn-action-bar').appendChild(btn);
+      ui.actionBar.appendChild(btn);
     }
   }
 });
@@ -310,39 +612,75 @@ socket.on('codenames_board', (data) => {
   const me = state.players.find(p => p.id === state.playerId) || { role: null, team: null };
   const isSpy = data.isSpymaster;
   
+  if (isSpy) {
+    ui.boardGrid.classList.add('spy-view');
+  } else {
+    ui.boardGrid.classList.remove('spy-view');
+  }
+  
   ui.boardGrid.innerHTML = '';
   data.board.forEach(card => {
-    const div = document.createElement('div');
-    div.className = 'cn-card';
-    div.textContent = card.word;
+    // Wrapper
+    const wrapper = document.createElement('div');
+    wrapper.className = 'cn-card-wrapper';
     
-    if (card.revealed) {
-      div.classList.add('revealed', `rev-${card.color}`);
-    } else {
-      if (isSpy && card.color) {
-        div.classList.add(`spy-${card.color}`);
-      } else {
-        // Can click if operative and it's our turn to guess
-        div.onclick = () => handleCardClick(card.index);
-      }
+    // Inner (for 3D flip)
+    const inner = document.createElement('div');
+    inner.className = 'cn-card-inner';
+    if (card.revealed) inner.classList.add('is-flipped');
+    
+    // Front (Manila Folder)
+    const front = document.createElement('div');
+    front.className = 'cn-card-front';
+    if (!card.revealed && isSpy && card.color) {
+      front.classList.add(`spy-${card.color}`);
+    }
+    const wordText = document.createElement('div');
+    wordText.className = 'cn-word-text';
+    wordText.textContent = card.word;
+    front.appendChild(wordText);
+    
+    // Back (Revealed state)
+    const back = document.createElement('div');
+    back.className = 'cn-card-back';
+    
+    const backWordText = document.createElement('div');
+    backWordText.textContent = card.word;
+    backWordText.style.fontSize = '0.9rem';
+    backWordText.style.opacity = '0.7';
+    back.appendChild(backWordText);
+    
+    if (card.revealed || isSpy) {
+      back.classList.add(`rev-${card.color}`);
+      const stamp = document.createElement('div');
+      stamp.className = 'stamp';
+      if (card.color === 'red') stamp.textContent = 'RED TEAM';
+      if (card.color === 'blue') stamp.textContent = 'BLUE TEAM';
+      if (card.color === 'neutral') stamp.textContent = 'BYSTANDER';
+      if (card.color === 'black') stamp.textContent = 'ASSASSIN';
+      back.appendChild(stamp);
     }
     
-    ui.boardGrid.appendChild(div);
+    if (!card.revealed && !isSpy) {
+      wrapper.onclick = () => handleCardClick(card.index);
+    }
+    
+    inner.appendChild(front);
+    inner.appendChild(back);
+    wrapper.appendChild(inner);
+    ui.boardGrid.appendChild(wrapper);
   });
 });
 
 socket.on('codenames_clue_given', (data) => {
-  const color = data.team === 'red' ? 'color: #ef4444' : 'color: #3b82f6';
-  window.app.showToast(`<span style="${color}">${data.team.toUpperCase()} Clue:</span> ${data.clue.word} (${data.clue.count})`, 'info');
-  // Hacky toast html support if it exists, otherwise it strips tags (our sanitize doesn't strip toast strings because it's client side).
+  const color = data.team === 'red' ? '#ef4444' : '#3b82f6';
+  window.app.showToast(`<span style="color: ${color}; font-family: monospace;">[TRANSMISSION] ${data.team.toUpperCase()} CLUE:</span> ${data.clue.word} (${data.clue.count})`, 'info');
 });
 
 socket.on('codenames_card_revealed', (data) => {
-  const color = data.team === 'red' ? 'color: #ef4444' : 'color: #3b82f6';
-  const cColor = data.card.color === 'red' ? '#ef4444' : data.card.color === 'blue' ? '#3b82f6' : data.card.color === 'neutral' ? '#a8a29e' : '#111';
-  // Optional: could add an animation here or toast
+  // Animation is handled by re-rendering the board with 'revealed: true', triggering the CSS 3D flip.
 });
 
 socket.on('codenames_game_over', (data) => {
-  window.app.showToast(data.reason, 'warning');
+  window.app.showToast(`[ALERT] ${data.reason}`, 'warning');
 });

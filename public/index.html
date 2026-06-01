@@ -5,8 +5,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta name="description"
-    content="Uwongo's Bar - A multiplayer bluffing card game with Russian Roulette stakes. Play online with friends!">
-  <title>Uwongo's Bar</title>
+    content="Sal's PartyBox - A multiplayer party game platform. Bluff, betray, and laugh with friends!">
+  <title>Sal's PartyBox</title>
+  <!-- Keep existing fonts via CSS import, but we can also add them here for redundancy if needed -->
   <link rel="stylesheet" href="css/styles.css">
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
@@ -85,8 +86,10 @@
   <!-- ===== LOBBY SCREEN ===== -->
   <div class="screen active" id="lobby-screen">
     <div class="lobby-container">
-      <h1 class="lobby-title">Party Game Box</h1>
-      <p class="lobby-subtitle">Pick a game. Gather friends. Have fun.</p>
+      <h1 class="lobby-title">Sal's PartyBox</h1>
+      <p class="lobby-subtitle">The Ultimate Party Spot</p>
+
+      <div class="lobby-divider">♠ ♥ ♦ ♣</div>
 
       <!-- Join/Create Panel (before room is created/joined) -->
       <div id="lobby-join-panel">
@@ -96,6 +99,8 @@
             <input type="text" id="player-name-input" placeholder="Your name..." maxlength="20" autocomplete="off">
           </div>
         </div>
+
+        <div class="lobby-divider">♠ ♥ ♦ ♣</div>
 
         <div class="lobby-card glass">
           <h2>Create a Room</h2>
@@ -132,27 +137,49 @@
           <ul class="player-list" id="player-list"></ul>
         </div>
 
-        <!-- Lobby Chat -->
-        <div class="lobby-card glass" id="lobby-chat-panel">
-          <h2>Chat</h2>
-          <div class="lobby-chat-messages" id="lobby-chat-messages"></div>
-          <div class="input-row wrap-mobile">
-            <input type="text" id="lobby-chat-input" placeholder="Type a message..." maxlength="100" autocomplete="off">
-            <button class="btn btn-emerald btn-sm" id="btn-send-chat">Send</button>
-          </div>
-        </div>
+        <!-- Lobby Chat removed for cleaner speakeasy aesthetic -->
 
         <!-- Room Settings / Game Selection -->
         <div class="lobby-card glass" id="room-settings-panel" style="display:none">
           <h2>Game Selection</h2>
-          <div class="input-group" style="margin-bottom: 15px;">
-            <select id="lobby-game-select" disabled style="width: 100%; padding: 10px; background: rgba(0,0,0,0.5); color: white; border: 1px solid var(--emerald); border-radius: 8px; font-size: 1rem;">
-              <option value="liars-bar">Uwongo's Bar</option>
-              <option value="spyfall">Spyfall</option>
-              <option value="scribble">Scribble Charades</option>
-              <option value="codenames">Codenames</option>
-            </select>
+          
+          <div class="game-carousel-wrapper">
+            <button class="carousel-arrow left" id="carousel-prev" title="Previous game">‹</button>
+            <div class="game-carousel" id="game-carousel">
+              <div class="game-carousel-card active" data-game="liars-bar">
+                <div class="game-card-icon">🃏</div>
+                <h3>Uwongo's Bar</h3>
+                <p>Bluff your way to survival</p>
+                <span class="game-players-badge">2-4 players</span>
+              </div>
+              <div class="game-carousel-card" data-game="spyfall">
+                <div class="game-card-icon">🕵️</div>
+                <h3>Spyfall</h3>
+                <p>Find the spy among you</p>
+                <span class="game-players-badge">3-8 players</span>
+              </div>
+              <div class="game-carousel-card" data-game="scribble">
+                <div class="game-card-icon">🎨</div>
+                <h3>Scribble Charades</h3>
+                <p>Draw, guess, laugh</p>
+                <span class="game-players-badge">3-8 players</span>
+              </div>
+              <div class="game-carousel-card" data-game="codenames">
+                <div class="game-card-icon">🔐</div>
+                <h3>Codenames</h3>
+                <p>Give clues, find agents</p>
+                <span class="game-players-badge">4-8 players</span>
+              </div>
+              <div class="game-carousel-card" data-game="hotjoker">
+                <div class="game-card-icon">🔥</div>
+                <h3>Hot Joker</h3>
+                <p>Don't get burned</p>
+                <span class="game-players-badge">2-6 players</span>
+              </div>
+            </div>
+            <button class="carousel-arrow right" id="carousel-next" title="Next game">›</button>
           </div>
+
 
           <div id="uwongos-settings">
             <h2>Uwongo's Settings</h2>
