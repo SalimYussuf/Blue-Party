@@ -57,13 +57,15 @@
   const btnStart = $('btn-start-game');
   const btnLeave = $('btn-leave-room');
   const roomSettingsPanel = $('room-settings-panel');
-  const lobbyGameSelect = $('lobby-game-select');
+  // Carousel refs instead of lobbyGameSelect
+  const gameCarousel = $('game-carousel');
+  const carouselPrev = $('carousel-prev');
+  const carouselNext = $('carousel-next');
+  const carouselCards = document.querySelectorAll('.game-carousel-card');
   const uwongosSettings = $('uwongos-settings');
   const toggleDevilMode = $('toggle-devil-mode');
   const toggleChaosMode = $('toggle-chaos-mode');
-  const lobbyChatMessages = $('lobby-chat-messages');
-  const lobbyChatInput = $('lobby-chat-input');
-  const btnSendChat = $('btn-send-chat');
+  // Lobby chat removed
   const btnHelpJoin = $('btn-help-join');
   const btnHelpRoom = $('btn-help-room');
   const helpModal = $('help-modal');
@@ -219,11 +221,10 @@
   btnCloseHelp.addEventListener('click', () => helpModal.classList.add('hidden'));
   helpModal.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.classList.add('hidden'); });
 
-  // Unified Chat
-  function sendChatMessage(type = 'lobby') {
+  // Unified Chat (Lobby chat removed, only game chat remains)
+  function sendChatMessage(type) {
     let input;
-    if (type === 'lobby') input = lobbyChatInput;
-    else if (type === 'mobile') input = $('game-chat-input-mobile');
+    if (type === 'mobile') input = $('game-chat-input-mobile');
     else if (type === 'desktop') input = $('game-chat-input-desktop');
 
     const msg = input?.value.trim();
@@ -232,9 +233,6 @@
     input.value = '';
   }
 
-  btnSendChat.addEventListener('click', () => sendChatMessage('lobby'));
-  lobbyChatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage('lobby'); });
-  
   btnSendGameChatMobile?.addEventListener('click', () => sendChatMessage('mobile'));
   $('game-chat-input-mobile')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage('mobile'); });
   
@@ -242,7 +240,8 @@
   $('game-chat-input-desktop')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage('desktop'); });
 
   socket.on('lobby_chat_message', (data) => {
-    const chatContainers = document.querySelectorAll('.game-chat-messages, #lobby-chat-messages');
+    // Only game chat containers remain
+    const chatContainers = document.querySelectorAll('.game-chat-messages');
     chatContainers.forEach(container => {
       const msgEl = document.createElement('div');
       msgEl.className = 'chat-msg';
@@ -373,21 +372,87 @@
     // Show settings panel if host
     roomSettingsPanel.style.display = 'block';
     
-    lobbyGameSelect.disabled = !state.isHost;
+    // Update Carousel interactivity based on host status
+    updateCarouselHostStatus();
     toggleDevilMode.disabled = !state.isHost;
     toggleChaosMode.disabled = !state.isHost;
     
     // Set initial game
     if (state.selectedGameId) {
-      lobbyGameSelect.value = state.selectedGameId;
+      updateCarouselUI(state.selectedGameId);
       uwongosSettings.style.display = state.selectedGameId === 'liars-bar' ? 'block' : 'none';
     }
+    
+    // Animation for entering room lobby
+    joinPanel.classList.remove('panel-enter');
+    roomPanel.classList.add('panel-enter');
   }
 
-  lobbyGameSelect.addEventListener('change', () => {
-    if (!state.isHost) return;
-    socket.emit('change_game', { roomCode: state.roomCode, gameId: lobbyGameSelect.value });
+  // ===== GAME CAROUSEL LOGIC =====
+  function updateCarouselHostStatus() {
+    carouselPrev.disabled = !state.isHost;
+    carouselNext.disabled = !state.isHost;
+    carouselCards.forEach(card => {
+      if (!state.isHost) {
+        card.classList.add('locked');
+      } else {
+        card.classList.remove('locked');
+      }
+    });
+  }
+
+  function updateCarouselUI(gameId) {
+    carouselCards.forEach(card => {
+      if (card.dataset.game === gameId) {
+        card.classList.add('active');
+        // Scroll into view
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      } else {
+        card.classList.remove('active');
+      }
+    });
+  }
+
+  // Click on card
+  carouselCards.forEach(card => {
+    card.addEventListener('click', () => {
+      if (!state.isHost) return;
+      const gameId = card.dataset.game;
+      if (gameId === state.selectedGameId) return;
+      socket.emit('change_game', { roomCode: state.roomCode, gameId });
+    });
   });
+
+  // Arrow buttons
+  carouselPrev.addEventListener('click', () => {
+    if (!state.isHost) return;
+    if (!gameCarousel) return;
+    const cardWidth = 160 + 14; // card width + gap
+    gameCarousel.scrollBy({ left: -cardWidth, behavior: 'smooth' });
+  });
+
+  carouselNext.addEventListener('click', () => {
+    if (!state.isHost) return;
+    if (!gameCarousel) return;
+    const cardWidth = 160 + 14;
+    gameCarousel.scrollBy({ left: cardWidth, behavior: 'smooth' });
+  });
+
+  // Swipe support for carousel (mostly native via CSS scroll-snap, but we ensure it works smoothly)
+  let touchStartX = 0;
+  let touchEndX = 0;
+  
+  if (gameCarousel) {
+    gameCarousel.addEventListener('touchstart', e => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, {passive: true});
+
+    gameCarousel.addEventListener('touchend', e => {
+      touchEndX = e.changedTouches[0].screenX;
+      // Native scroll-snap handles the visual snapping, we don't need to force JS selection on swipe
+      // since users can just click the snapped card to select it.
+    }, {passive: true});
+  }
 
   function updatePlayerList(players, hostId) {
     state.isHost = (hostId === state.playerId);
@@ -477,6 +542,8 @@
     state.isHost = false;
     joinPanel.style.display = 'block';
     roomPanel.style.display = 'none';
+    joinPanel.classList.add('panel-enter');
+    roomPanel.classList.remove('panel-enter');
     showScreen('lobby');
   }
 
@@ -976,9 +1043,7 @@
   // -- Game Selection --
   socket.on('room_game_changed', (data) => {
     state.selectedGameId = data.gameId;
-    if (lobbyGameSelect) {
-      lobbyGameSelect.value = data.gameId;
-    }
+    updateCarouselUI(data.gameId);
     if (uwongosSettings) {
       uwongosSettings.style.display = data.gameId === 'liars-bar' ? 'block' : 'none';
     }
