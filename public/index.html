@@ -230,19 +230,18 @@
     </div>
 
     <div class="casino-table" id="game-layout">
-      <!-- Top bar -->
-      <div class="game-top-bar glass">
-        <div style="display:flex;align-items:center;gap:12px">
-          <div class="room-info">Room: <span id="game-room-code"></span></div>
-        </div>
-        
-        <div class="top-controls">
-          <div class="volume-control">
+      <!-- Top-Right Settings -->
+      <div class="top-right-settings">
+        <button class="btn-icon gear-icon" id="btn-settings-toggle" title="Settings">⚙️</button>
+        <div class="settings-dropdown glass hidden" id="settings-dropdown">
+          <div class="dropdown-item room-info">Room: <span id="game-room-code"></span></div>
+          <div class="dropdown-item round-info">Round <span id="game-round">1</span></div>
+          <div class="dropdown-item volume-control">
             <button class="btn-icon" id="btn-mute" title="Mute/Unmute Sounds">🔊</button>
             <input type="range" id="volume-slider" min="0" max="100" value="100" class="volume-slider">
           </div>
+          <button class="btn btn-outline btn-sm btn-block mt-2" id="btn-leave-room-dropdown">Leave Room</button>
         </div>
-        <div class="round-info">Round <span id="game-round">1</span></div>
       </div>
 
       <!-- Devil Mode Banner -->
@@ -255,66 +254,77 @@
         <span id="targeting-text">🔥 Select a player to shoot!</span>
       </div>
 
-      <!-- Opponents Dashboard -->
-      <div class="opponents-dashboard">
-        <div class="opponent-slot" id="seat-left"></div>
-        <div class="opponent-slot" id="seat-top"></div>
-        <div class="opponent-slot" id="seat-right"></div>
+      <!-- Flat Table Layout -->
+      <div class="table-edges-layout">
+        <div class="edge-left" id="edge-left"></div>
+
+        <div class="table-middle">
+          <div class="edge-top" id="edge-top"></div>
+
+          <!-- Center of table (Pile and Turn Timer) -->
+          <div class="game-center">
+            <div class="turn-timer" id="turn-timer" style="display:none">
+              <svg width="56" height="56">
+                <circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="4" />
+                <circle cx="28" cy="28" r="24" class="turn-timer-circle" id="timer-circle" stroke-dasharray="150.8"
+                  stroke-dashoffset="0" />
+              </svg>
+              <div class="turn-timer-text" id="timer-text">20</div>
+            </div>
+
+            <div class="status-message" id="status-message">Waiting...</div>
+
+            <div class="current-rank-badge glass" id="current-rank-badge" style="display:none">
+              Declare: <span id="current-rank-text"></span>
+            </div>
+
+            <div class="pile-area" id="pile-area">
+              <div class="pile-stack" id="pile-stack"></div>
+              <div class="pile-label"><span id="pile-count">0</span> cards in pile</div>
+            </div>
+
+            <div class="last-play-info" id="last-play-info"></div>
+          </div>
+        </div>
+
+        <div class="edge-right" id="edge-right"></div>
       </div>
 
-      <!-- Center of table -->
-      <div class="game-center">
-        <div class="turn-timer" id="turn-timer" style="display:none">
-          <svg width="56" height="56">
-            <circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="4" />
-            <circle cx="28" cy="28" r="24" class="turn-timer-circle" id="timer-circle" stroke-dasharray="150.8"
-              stroke-dashoffset="0" />
-          </svg>
-          <div class="turn-timer-text" id="timer-text">20</div>
-        </div>
+      <!-- Actions Drawer -->
+      <div class="actions-drawer glass closed" id="actions-drawer">
+        <button class="drawer-handle" id="btn-toggle-actions-drawer">
+          <span class="handle-bar"></span>
+        </button>
+        
+        <div class="drawer-content">
+          <!-- Player's Own Bullets (Moved here) -->
+          <div class="player-lives-panel">
+            <div class="lives-title">Shots Taken</div>
+            <div class="player-shots-text" id="player-shots-text">0 / 6</div>
+          </div>
 
-        <div class="status-message" id="status-message">Waiting...</div>
+          <!-- Declaration panel -->
+          <div class="declaration-panel hidden" id="declaration-panel">
+            <div class="rank-buttons" id="rank-buttons"></div>
+          </div>
 
-        <div class="current-rank-badge glass" id="current-rank-badge" style="display:none">
-          Declare: <span id="current-rank-text"></span>
-        </div>
+          <div class="action-buttons" id="action-buttons">
+            <button class="btn btn-emerald" id="btn-play-cards" disabled>Play Cards</button>
+            <button class="btn-liar" id="btn-call-liar" disabled>🃏 UWONGO!</button>
+          </div>
 
-        <div class="pile-area" id="pile-area">
-          <div class="pile-stack" id="pile-stack"></div>
-          <div class="pile-label"><span id="pile-count">0</span> cards in pile</div>
-        </div>
-
-        <div class="last-play-info" id="last-play-info"></div>
-      </div>
-
-      <!-- Controls -->
-      <div class="controls-area" id="controls-area">
-        <!-- Declaration panel -->
-        <div class="declaration-panel glass hidden" id="declaration-panel">
-          <div class="rank-buttons" id="rank-buttons"></div>
-        </div>
-
-        <div class="action-buttons" id="action-buttons">
-          <button class="btn btn-emerald" id="btn-play-cards" disabled>Play Cards</button>
-          <button class="btn-liar" id="btn-call-liar" disabled>🃏 UWONGO!</button>
-        </div>
-
-        <div class="emoji-bar" id="emoji-bar">
-          <button class="emoji-btn" data-emoji="😂">😂</button>
-          <button class="emoji-btn" data-emoji="😱">😱</button>
-          <button class="emoji-btn" data-emoji="🤥">🤥</button>
-          <button class="emoji-btn" data-emoji="👀">👀</button>
-          <button class="emoji-btn" data-emoji="🔥">🔥</button>
+          <div class="emoji-bar" id="emoji-bar">
+            <button class="emoji-btn" data-emoji="😂">😂</button>
+            <button class="emoji-btn" data-emoji="😱">😱</button>
+            <button class="emoji-btn" data-emoji="🤥">🤥</button>
+            <button class="emoji-btn" data-emoji="👀">👀</button>
+            <button class="emoji-btn" data-emoji="🔥">🔥</button>
+          </div>
         </div>
       </div>
 
       <!-- Hand -->
       <div class="player-dashboard">
-        <!-- Player's Own Bullets -->
-        <div class="player-lives-panel glass">
-          <div class="lives-title">Shots Taken</div>
-          <div class="player-shots-text" id="player-shots-text">0 / 6</div>
-        </div>
 
         <div class="hand-area">
           <div class="hand-container" id="hand-container"></div>
