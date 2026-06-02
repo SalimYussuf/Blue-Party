@@ -42,6 +42,7 @@
     lobby: $('lobby-screen'),
     'liars-bar': $('liars-bar-screen'),
     results: $('results-screen'),
+    secrethitler: $('secrethitler-screen'),
   };
 
   // Lobby

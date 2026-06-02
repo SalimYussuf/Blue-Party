@@ -9,6 +9,7 @@
   <title>Sal's PartyBox</title>
   <!-- Keep existing fonts via CSS import, but we can also add them here for redundancy if needed -->
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="/games/secrethitler/style.css">
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 
@@ -175,6 +176,12 @@
                 <h3>Hot Joker</h3>
                 <p>Don't get burned</p>
                 <span class="game-players-badge">2-6 players</span>
+              </div>
+              <div class="game-carousel-card" data-game="secrethitler">
+                <div class="game-card-icon">💀</div>
+                <h3>Secret Hitler</h3>
+                <p>Hidden roles and deduction</p>
+                <span class="game-players-badge">5-10 players</span>
               </div>
             </div>
             <button class="carousel-arrow right" id="carousel-next" title="Next game">›</button>
@@ -371,6 +378,9 @@
       </div>
     </div>
   </div>
+
+  <!-- ===== SECRET HITLER SCREEN ===== -->
+  <div class="screen" id="secrethitler-screen"></div>
 
   <script src="js/app.js"></script>
 </body>
