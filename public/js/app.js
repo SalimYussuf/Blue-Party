@@ -56,6 +56,13 @@
   const btnReady = $('btn-ready');
   const btnStart = $('btn-start-game');
   const btnLeave = $('btn-leave-room');
+  // Minimalist UI Elements
+  const btnSettingsToggle = $('btn-settings-toggle');
+  const settingsDropdown = $('settings-dropdown');
+  const btnLeaveRoomDropdown = $('btn-leave-room-dropdown');
+  const actionsDrawer = $('actions-drawer');
+  const btnToggleActionsDrawer = $('btn-toggle-actions-drawer');
+
   const roomSettingsPanel = $('room-settings-panel');
   // Carousel refs instead of lobbyGameSelect
   const gameCarousel = $('game-carousel');
@@ -291,6 +298,20 @@
 
   btnStart.addEventListener('click', () => {
     socket.emit('start_game', { roomCode: state.roomCode });
+  });
+
+  btnSettingsToggle?.addEventListener('click', () => {
+    settingsDropdown?.classList.toggle('hidden');
+  });
+
+  btnLeaveRoomDropdown?.addEventListener('click', () => {
+    socket.emit('leave_room', { roomCode: state.roomCode });
+    resetToJoin();
+    settingsDropdown?.classList.add('hidden');
+  });
+
+  btnToggleActionsDrawer?.addEventListener('click', () => {
+    actionsDrawer?.classList.toggle('closed');
   });
 
   btnLeave.addEventListener('click', () => {
@@ -581,36 +602,58 @@
     updateControls();
   }
 
-  // ===== GAME — OPPONENTS & PLAYER LIVES =====
   function renderOpponents(players, currentTurnTeamIndex = null) {
-    const seats = [$('seat-left'), $('seat-top'), $('seat-right')];
-    seats.forEach(s => s.innerHTML = '');
+    const edgeLeft = $('edge-left');
+    const edgeTop = $('edge-top');
+    const edgeRight = $('edge-right');
+    if (!edgeLeft || !edgeTop || !edgeRight) return;
+
+    edgeLeft.innerHTML = '';
+    edgeTop.innerHTML = '';
+    edgeRight.innerHTML = '';
 
     const me = players.find(p => p.id === state.playerId);
     const myTeamIndex = me ? me.teamIndex : -1;
 
-    // Group other teams
+    // Group opponent teams (skip local player's team)
     const teams = {};
     players.forEach(p => {
-      if (p.teamIndex === myTeamIndex) return; // Skip my team
+      if (p.teamIndex === myTeamIndex) return;
       if (!teams[p.teamIndex]) teams[p.teamIndex] = [];
       teams[p.teamIndex].push(p);
     });
 
-    const opponentTeamIndices = Object.keys(teams).sort();
+    const opponentTeamIndices = Object.keys(teams).sort((a, b) => parseInt(a) - parseInt(b));
+    const count = opponentTeamIndices.length;
+    if (count === 0) return;
 
-    let assignedSeats = [];
-    if (opponentTeamIndices.length === 1) assignedSeats = [seats[1]]; // top
-    else if (opponentTeamIndices.length === 2) assignedSeats = [seats[0], seats[2]]; // left, right
-    else if (opponentTeamIndices.length >= 3) assignedSeats = [seats[0], seats[1], seats[2]]; // left, top, right
+    // Distribute teams to edges:
+    // 1 opponent  -> top
+    // 2 opponents -> left, right
+    // 3 opponents -> left, top, right
+    // 4 opponents -> left, top, top, right
+    // 5 opponents -> left, left, top, right, right
+    // General: fill left, top, right evenly
+    const edgeAssignments = [];
+    if (count === 1) {
+      edgeAssignments.push('top');
+    } else if (count === 2) {
+      edgeAssignments.push('left', 'right');
+    } else if (count === 3) {
+      edgeAssignments.push('left', 'top', 'right');
+    } else {
+      // Distribute evenly: left gets floor((count-1)/2), right gets the same, top gets rest
+      const sideCount = Math.floor((count - 1) / 2);
+      for (let i = 0; i < sideCount; i++) edgeAssignments.push('left');
+      const topCount = count - sideCount * 2;
+      for (let i = 0; i < topCount; i++) edgeAssignments.push('top');
+      for (let i = 0; i < sideCount; i++) edgeAssignments.push('right');
+    }
 
-    opponentTeamIndices.forEach((tIdx, i) => {
-      const seat = assignedSeats[i];
-      if (!seat) return;
-
-      const teamPlayers = teams[tIdx];
-      const p = teamPlayers[0]; // Representative for status (eliminated/shots)
-      
+    opponentTeamIndices.forEach((tIdxStr, i) => {
+      const tIdx = parseInt(tIdxStr);
+      const teamPlayers = teams[tIdxStr];
+      const p = teamPlayers[0];
       const names = teamPlayers.map(tp => tp.name).join(' & ');
       const isEliminated = teamPlayers.every(tp => tp.isEliminated);
       const isDisconnected = teamPlayers.every(tp => !tp.isConnected);
@@ -619,24 +662,22 @@
       card.className = 'opponent-card';
       if (isEliminated) card.classList.add('eliminated');
       if (isDisconnected) card.classList.add('disconnected');
-      if (parseInt(tIdx) === currentTurnTeamIndex) card.classList.add('active-turn');
-      
-      // If any teammate is targetable, the whole slot is targetable
+      if (tIdx === currentTurnTeamIndex) card.classList.add('active-turn');
+
       const isTargetable = (state.targetingMode || state.chaosTargetingMode) && !isEliminated;
       if (isTargetable) card.classList.add('targetable');
-      
+
       card.id = `opponent-team-${tIdx}`;
 
       // Turn Order Badge
       if (state.turnOrder && state.turnOrder.length > 0) {
-        const orderIdx = state.turnOrder.indexOf(parseInt(tIdx));
+        const orderIdx = state.turnOrder.indexOf(tIdx);
         if (orderIdx !== -1) {
           const badge = document.createElement('div');
           badge.className = 'turn-order-badge';
           badge.textContent = orderIdx + 1;
           card.appendChild(badge);
 
-          // "Next" indicator
           const currentIdx = state.turnOrder.indexOf(currentTurnTeamIndex);
           const nextIdx = (currentIdx + 1) % state.turnOrder.length;
           if (orderIdx === nextIdx && !isEliminated) {
@@ -648,12 +689,11 @@
         }
       }
 
-      // Card Content (Using DOM to avoid XSS)
       const avatarDiv = document.createElement('div');
       avatarDiv.className = 'player-avatar';
-      avatarDiv.style.background = avatarColors[parseInt(tIdx) % avatarColors.length];
+      avatarDiv.style.background = avatarColors[tIdx % avatarColors.length];
       avatarDiv.style.margin = '0 auto 10px';
-      avatarDiv.textContent = avatarEmojis[parseInt(tIdx) % avatarEmojis.length];
+      avatarDiv.textContent = avatarEmojis[tIdx % avatarEmojis.length];
       card.appendChild(avatarDiv);
 
       const nameDiv = document.createElement('div');
@@ -664,8 +704,8 @@
       const cardsRow = document.createElement('div');
       cardsRow.className = 'opponent-cards-row';
       const handSize = p.handSize;
-      const count = Math.min(handSize, 10);
-      for (let c = 0; c < count; c++) {
+      const miniCount = Math.min(handSize, 10);
+      for (let c = 0; c < miniCount; c++) {
         const back = document.createElement('div');
         back.className = 'mini-card-back';
         cardsRow.appendChild(back);
@@ -694,17 +734,21 @@
             socket.emit('select_target', { roomCode: state.roomCode, targetId: target.id });
             state.targetingMode = false;
             state.chaosTargetingMode = false;
-            targetingBanner.classList.add('hidden');
+            const targetingBanner = $('targeting-banner');
+            if (targetingBanner) targetingBanner.classList.add('hidden');
             renderOpponents(state.players, null);
             showToast(`Targeting team: ${names}`, 'info');
           }
         }
       });
 
-      seat.appendChild(card);
+      // Append to the correct edge container
+      const edge = edgeAssignments[i];
+      if (edge === 'left') edgeLeft.appendChild(card);
+      else if (edge === 'right') edgeRight.appendChild(card);
+      else edgeTop.appendChild(card);
     });
   }
-
   function renderPlayerLives(playerInfo) {
     const shotsText = $('player-shots-text');
     if (!playerInfo) return;
@@ -775,6 +819,14 @@
 
     btnCallLiar.disabled = !state.canCallLiar || !state.isMyTurn;
     btnPlayCards.style.display = state.isMyTurn ? 'inline-flex' : 'none';
+    // Auto-toggle actions drawer based on turn
+    if (actionsDrawer) {
+      if (state.isMyTurn) {
+        actionsDrawer.classList.remove('closed');
+      } else {
+        actionsDrawer.classList.add('closed');
+      }
+    }
   }
 
   function buildRankButtons(lockedRank) {

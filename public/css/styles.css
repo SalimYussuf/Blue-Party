@@ -24,7 +24,9 @@
   --shadow: 0 8px 32px rgba(0, 0, 0, .45);
   --transition: .25s cubic-bezier(.4, 0, .2, 1);
 }
-
+input#scribble-chat-input {
+    color: black;
+}
 *,
 *::before,
 *::after {
@@ -892,13 +894,50 @@ input[type="text"]::placeholder {
   flex-direction: column;
   min-height: 100vh;
   padding: 12px;
-  gap: 12px;
+  gap: 0;
   position: relative;
   z-index: 1;
   background:
-    radial-gradient(ellipse at 50% 50%, rgba(16, 80, 60, 0.35) 0%, transparent 65%),
+    radial-gradient(ellipse at 50% 40%, rgba(16, 80, 60, 0.35) 0%, transparent 65%),
     radial-gradient(ellipse at 50% 100%, rgba(212, 168, 71, 0.06) 0%, transparent 50%),
     #0a0e1a;
+}
+
+/* ===== FLAT TABLE EDGE LAYOUT ===== */
+.table-edges-layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.edge-left,
+.edge-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 6px;
+  min-width: 130px;
+  flex-shrink: 0;
+}
+
+.edge-top {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 8px 12px;
+  flex-wrap: wrap;
+}
+
+.table-middle {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 /* Gold trim border effect on the table */
@@ -912,17 +951,7 @@ input[type="text"]::placeholder {
   z-index: 0;
 }
 
-.casino-table .game-top-bar {
-  border: 1px solid rgba(212, 168, 71, 0.15);
-  background: rgba(10, 14, 26, 0.8);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(212,168,71,0.1);
-}
 
-.casino-table .game-top-bar .round-info {
-  color: var(--gold);
-  font-weight: 700;
-  letter-spacing: 1px;
-}
 
 .casino-table .opponent-card {
   border: 1px solid rgba(212,168,71,0.12);
@@ -990,40 +1019,7 @@ input[type="text"]::placeholder {
   border: 1px solid rgba(212,168,71,0.2);
 }
 
-/* Top bar */
-.game-top-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px;
-  font-size: .85rem;
-}
 
-.game-top-bar .room-info {
-  color: var(--text-dim);
-}
-
-.game-top-bar .room-info span {
-  color: var(--gold);
-  font-weight: 700;
-}
-
-.game-top-bar .round-info {
-  color: var(--text-dim);
-}
-
-/* Opponents Dashboard */
-.opponents-dashboard {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  flex-wrap: wrap;
-  padding: 0 8px;
-}
-
-.opponent-slot {
-  display: flex;
-  justify-content: center;
 }
 
 .opponent-card {
@@ -1366,14 +1362,6 @@ input[type="text"]::placeholder {
   box-shadow: 0 0 20px rgba(212, 168, 71, .5);
 }
 
-/* ===== CONTROLS ===== */
-.controls-area {
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-}
 
 .declaration-panel {
   display: flex;
@@ -2868,4 +2856,114 @@ input:checked+.toggle-slider::before {
 .stat-pill span:last-child {
   color: var(--gold);
   font-weight: 700;
+}
+/* ===== MINIMALIST UI - TOP SETTINGS ===== */
+.top-right-settings {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 100;
+}
+
+.gear-icon {
+  font-size: 1.5rem;
+  background: rgba(10, 14, 26, 0.7);
+  border: 1px solid rgba(212, 168, 71, 0.3);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.gear-icon:hover {
+  transform: rotate(90deg);
+  box-shadow: 0 0 15px rgba(212, 168, 71, 0.4);
+}
+
+.settings-dropdown {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  width: 220px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(212, 168, 71, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+}
+
+.dropdown-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+
+.dropdown-item span {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+/* ===== MINIMALIST UI - ACTIONS DRAWER ===== */
+.actions-drawer {
+  position: absolute;
+  bottom: 160px; /* Sits above the hand */
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  width: 90%;
+  max-width: 600px;
+  border-radius: 16px;
+  border: 1px solid rgba(212, 168, 71, 0.3);
+  box-shadow: 0 -5px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+  z-index: 90;
+}
+
+.actions-drawer.closed {
+  transform: translateX(-50%) translateY(120%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.drawer-handle {
+  width: 100%;
+  height: 24px;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding-top: 4px;
+}
+
+.handle-bar {
+  width: 40px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+
+.drawer-handle:hover .handle-bar {
+  background: rgba(212, 168, 71, 0.8);
+}
+
+.drawer-content {
+  width: 100%;
+  padding: 10px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
 }
