@@ -1,6 +1,7 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const path = require('path');         
 const Room = require('./server/Room');
 const Player = require('./server/Player');
 const gameManager = require('./server/GameManager');
@@ -36,6 +37,7 @@ const io = new Server(server, {
 
 app.use(express.static('public'));
 app.use('/games', express.static('games'));
+app.use('/assets', express.static(path.join(__dirname, 'games/secrethitler/assets')));
 
 // ========== HELPERS ==========
 
