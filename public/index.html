@@ -215,6 +215,7 @@
           <button class="btn btn-outline btn-block" id="btn-ready">Ready</button>
           <button class="btn btn-gold btn-block" id="btn-start-game" style="display:none">Start Game</button>
         </div>
+        <button class="btn btn-outline btn-sm btn-block" id="btn-add-bot" style="margin-top:8px; border-style: dashed; display: none;">🤖 Add Dummy Bot</button>
         <button class="btn btn-outline btn-sm btn-block" id="btn-leave-room" style="margin-top:8px">Leave Room</button>
       </div>
     </div>
@@ -381,6 +382,11 @@
 
   <!-- ===== SECRET HITLER SCREEN ===== -->
   <div class="screen" id="secrethitler-screen"></div>
+
+  <!-- ===== GLOBAL HOST CONTROLS ===== -->
+  <div id="global-host-controls" class="hidden" style="position: fixed; top: 10px; left: 10px; z-index: 9999;">
+    <button class="btn btn-outline btn-sm" id="btn-force-lobby" style="background: rgba(0,0,0,0.6); color: white; border-color: var(--emerald); box-shadow: 0 4px 6px rgba(0,0,0,0.3); font-weight: bold;">⬅ Return to Lobby</button>
+  </div>
 
   <script src="js/app.js"></script>
 </body>

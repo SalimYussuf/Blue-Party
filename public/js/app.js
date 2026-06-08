@@ -33,6 +33,7 @@
     volume: 1.0,
     isEliminated: false,
     turnOrder: [],
+    botSockets: [],
   };
   window.app.state = state;
 
@@ -56,11 +57,14 @@
   const playerList = $('player-list');
   const btnReady = $('btn-ready');
   const btnStart = $('btn-start-game');
+  const btnAddBot = $('btn-add-bot');
   const btnLeave = $('btn-leave-room');
   // Minimalist UI Elements
   const btnSettingsToggle = $('btn-settings-toggle');
   const settingsDropdown = $('settings-dropdown');
   const btnLeaveRoomDropdown = $('btn-leave-room-dropdown');
+  const globalHostControls = $('global-host-controls');
+  const btnForceLobby = $('btn-force-lobby');
   const actionsDrawer = $('actions-drawer');
   const btnToggleActionsDrawer = $('btn-toggle-actions-drawer');
 
@@ -193,6 +197,25 @@
   }
   window.app.showToast = showToast;
 
+  btnForceLobby?.addEventListener('click', () => {
+    if (confirm('Are you sure you want to return to the lobby? This will end the current game.')) {
+      socket.emit('force_lobby', { roomCode: state.roomCode });
+    }
+  });
+
+  setInterval(() => {
+    if (globalHostControls) {
+      const isLobby = screens.lobby && screens.lobby.classList.contains('active');
+      const isResults = screens.results && screens.results.classList.contains('active');
+      const isGameActive = !isLobby && !isResults && state.roomCode !== null;
+      if (state.isHost && isGameActive) {
+        globalHostControls.classList.remove('hidden');
+      } else {
+        globalHostControls.classList.add('hidden');
+      }
+    }
+  }, 500);
+
   btnMute.addEventListener('click', () => {
     if (state.volume > 0) {
       state.lastVolume = state.volume;
@@ -301,6 +324,28 @@
     socket.emit('start_game', { roomCode: state.roomCode });
   });
 
+  btnAddBot?.addEventListener('click', () => {
+    if (!state.roomCode) return;
+    showToast('Spawning dummy bot...', 'info');
+    const botSocket = io();
+    const botName = 'Bot ' + Math.floor(Math.random() * 1000);
+    
+    botSocket.on('connect', () => {
+      botSocket.emit('join_room', { roomCode: state.roomCode, playerName: botName });
+    });
+    
+    botSocket.on('room_joined', () => {
+      botSocket.emit('player_ready', { roomCode: state.roomCode });
+    });
+
+    botSocket.on('error', (data) => {
+      console.warn('Bot error:', data);
+      botSocket.disconnect();
+    });
+
+    state.botSockets.push(botSocket);
+  });
+
   btnSettingsToggle?.addEventListener('click', () => {
     settingsDropdown?.classList.toggle('hidden');
   });
@@ -370,6 +415,7 @@
 
     // Show settings panel if host
     roomSettingsPanel.style.display = 'block';
+    if (btnAddBot) btnAddBot.style.display = state.isHost ? 'block' : 'none';
     
     // Update Carousel interactivity based on host status
     updateCarouselHostStatus();
@@ -539,6 +585,12 @@
   function resetToJoin() {
     state.roomCode = null;
     state.isHost = false;
+    
+    if (state.botSockets) {
+      state.botSockets.forEach(b => b.disconnect());
+      state.botSockets = [];
+    }
+
     joinPanel.style.display = 'block';
     roomPanel.style.display = 'none';
     joinPanel.classList.add('panel-enter');

@@ -1,7 +1,7 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const path = require('path');         
+const path = require('path');
 const Room = require('./server/Room');
 const Player = require('./server/Player');
 const gameManager = require('./server/GameManager');
@@ -80,13 +80,14 @@ function isRateLimited(socketId, eventName, maxCount = 3, windowMs = 5000) {
 
 /** Rate-limited events and their limits */
 const RATE_LIMITED_EVENTS = {
-  create_room:  { max: 2, window: 5000 },
-  join_room:    { max: 3, window: 5000 },
-  play_cards:   { max: 3, window: 5000 },
-  call_liar:    { max: 2, window: 5000 },
-  send_emoji:   { max: 20, window: 5000 },
-  lobby_chat:   { max: 3, window: 5000 },
-  kick_player:  { max: 2, window: 5000 },
+  create_room: { max: 2, window: 5000 },
+  join_room: { max: 3, window: 5000 },
+  play_cards: { max: 3, window: 5000 },
+  call_liar: { max: 2, window: 5000 },
+  send_emoji: { max: 50, window: 5000 },
+  lobby_chat: { max: 3, window: 5000 },
+  kick_player: { max: 2, window: 5000 },
+  force_lobby: { max: 2, window: 5000 },
 };
 
 // ========== STATE ==========
@@ -204,34 +205,34 @@ io.on('connection', (socket) => {
           return;
         }
       } else {
-         // Reconnecting to lobby
-         const player = room.getPlayer(oldId);
-         if (player) {
-           room.players.delete(oldId);
-           player.id = socket.id;
-           player.socketId = socket.id;
-           player.isConnected = true;
-           room.players.set(socket.id, player);
-           if (room.hostId === oldId) room.hostId = socket.id;
-           
-           playerRooms.set(socket.id, code);
-           socket.join(code);
-           
-           socket.emit('room_joined', {
-             roomCode: code,
-             players: room.getPlayerList(),
-             hostId: room.hostId,
-             playerId: socket.id,
-             settings: room.settings,
-             selectedGameId: room.selectedGameId,
-           });
-           
-           socket.to(code).emit('player_list_update', {
-             players: room.getPlayerList(),
-             hostId: room.hostId,
-           });
-           return;
-         }
+        // Reconnecting to lobby
+        const player = room.getPlayer(oldId);
+        if (player) {
+          room.players.delete(oldId);
+          player.id = socket.id;
+          player.socketId = socket.id;
+          player.isConnected = true;
+          room.players.set(socket.id, player);
+          if (room.hostId === oldId) room.hostId = socket.id;
+
+          playerRooms.set(socket.id, code);
+          socket.join(code);
+
+          socket.emit('room_joined', {
+            roomCode: code,
+            players: room.getPlayerList(),
+            hostId: room.hostId,
+            playerId: socket.id,
+            settings: room.settings,
+            selectedGameId: room.selectedGameId,
+          });
+
+          socket.to(code).emit('player_list_update', {
+            players: room.getPlayerList(),
+            hostId: room.hostId,
+          });
+          return;
+        }
       }
     }
 
@@ -343,7 +344,7 @@ io.on('connection', (socket) => {
   // ---------- CATCH ALL EVENTS FOR GAME MANAGER ----------
   socket.onAny((eventName, ...args) => {
     // Ignore globally handled events
-    if (['create_room', 'join_room', 'change_game', 'start_game', 'select_game', 'disconnect', 'reconnect_attempt', 'player_ready', 'update_settings', 'leave_room', 'play_again', 'send_emoji', 'lobby_chat', 'kick_player'].includes(eventName)) return;
+    if (['create_room', 'join_room', 'change_game', 'start_game', 'select_game', 'disconnect', 'reconnect_attempt', 'player_ready', 'update_settings', 'leave_room', 'play_again', 'send_emoji', 'lobby_chat', 'kick_player', 'force_lobby'].includes(eventName)) return;
 
     const data = args[0] || {};
     const roomCode = data.roomCode;
@@ -367,7 +368,34 @@ io.on('connection', (socket) => {
     for (const player of room.players.values()) {
       player.isReady = false;
       player.hand = [];
-      player.resetRevolver();
+      if (player.resetRevolver) player.resetRevolver();
+    }
+
+    gameManager.endGame(roomCode);
+
+    io.to(roomCode).emit('back_to_lobby', {
+      players: room.getPlayerList(),
+      hostId: room.hostId,
+    });
+  });
+
+  // ---------- FORCE LOBBY (HOST ONLY) ----------
+  socket.on('force_lobby', ({ roomCode }) => {
+    if (rateCheck('force_lobby')) return;
+    const room = rooms.get(roomCode);
+    if (!room) return;
+
+    if (socket.id !== room.hostId) {
+      socket.emit('error', { message: 'Only the host can return to lobby' });
+      return;
+    }
+
+    // Reset room state
+    room.state = 'waiting';
+    for (const player of room.players.values()) {
+      player.isReady = false;
+      player.hand = [];
+      if (player.resetRevolver) player.resetRevolver();
     }
 
     gameManager.endGame(roomCode);
