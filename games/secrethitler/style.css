@@ -1,462 +1,493 @@
-/* Secret Hitler Game Styles */
+/* Secret Hitler Tabletop Theme */
 
-.secrethitler-board {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+#secrethitler-screen {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #1a1a2e;
+  font-family: 'Times New Roman', serif;
   color: #fff;
-  font-family: Arial, sans-serif;
-  border-radius: 8px;
 }
 
-.sh-header {
+#sh-tabletop {
   display: flex;
-  gap: 40px;
-  justify-content: center;
-  margin-bottom: 40px;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
   padding: 20px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 8px;
+  box-sizing: border-box;
 }
 
-.sh-policies {
+/* ==================== PLAYERS ROW (TOP) ==================== */
+#sh-players-row {
   display: flex;
-  gap: 40px;
-}
-
-.sh-policy-track {
-  text-align: center;
-}
-
-.sh-policy-track h3 {
-  margin: 0 0 10px 0;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.sh-policy-display {
-  display: flex;
-  gap: 8px;
-}
-
-.sh-policy-slot {
-  width: 40px;
-  height: 40px;
-  border: 2px solid #666;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
   justify-content: center;
-  font-size: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  transition: all 0.3s;
-}
-
-.sh-policy-slot.enacted {
-  background: #4CAF50;
-  border-color: #45a049;
-  box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
-}
-
-.sh-policy-slot.fascist.enacted {
-  background: #f44336;
-  border-color: #da190b;
-  box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
-}
-
-.sh-tracker {
-  text-align: center;
-}
-
-.sh-tracker h3 {
-  margin: 0 0 10px 0;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.sh-tracker-display {
-  display: flex;
-  gap: 8px;
-}
-
-.sh-tracker-slot {
-  width: 40px;
-  height: 40px;
-  border: 2px solid #666;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.sh-tracker-slot.failed {
-  background: #f44336;
-  border-color: #da190b;
-}
-
-.sh-status {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.sh-status h2 {
-  margin: 0;
-  font-size: 24px;
-  color: #FFD700;
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-}
-
-.sh-players {
-  margin-bottom: 30px;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-}
-
-.sh-players h3 {
-  margin-top: 0;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  border-bottom: 2px solid #FFD700;
-  padding-bottom: 10px;
-}
-
-.sh-player-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  align-items: flex-start;
   gap: 15px;
+  height: 20%;
+  z-index: 10;
 }
 
 .sh-player {
-  padding: 15px;
-  border: 2px solid #666;
-  border-radius: 6px;
-  background: rgba(100, 100, 100, 0.3);
-  text-align: center;
   position: relative;
-  transition: all 0.3s;
-}
-
-.sh-player.president {
-  border-color: #FFD700;
-  background: rgba(255, 215, 0, 0.2);
-  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-}
-
-.sh-player.chancellor {
-  border-color: #FF6B6B;
-  background: rgba(255, 107, 107, 0.2);
-  box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+  width: 90px;
+  height: 120px;
+  background: url('/assets/player-base.png') center/cover no-repeat;
+  transition: transform 0.3s ease;
+  filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.5));
 }
 
 .sh-player.dead {
-  opacity: 0.5;
-  background: rgba(50, 50, 50, 0.5);
+  filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.5)) grayscale(100%);
+  opacity: 0.6;
 }
 
-.sh-player.dead::after {
-  content: '☠️';
+.sh-player-portrait {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  font-size: 20px;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.8);
 }
 
 .sh-player-name {
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-
-.sh-role {
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: bold;
-  margin-top: 5px;
-}
-
-.sh-role.liberal {
-  background: #4CAF50;
-  color: white;
-}
-
-.sh-role.fascist {
-  background: #f44336;
-  color: white;
-}
-
-.sh-role.hitler {
-  background: #333;
-  color: #f44336;
-  border: 2px solid #f44336;
-}
-
-.sh-badge {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  background: #FFD700;
-  color: #000;
-  padding: 3px 6px;
-  border-radius: 3px;
-  font-size: 10px;
-  font-weight: bold;
-}
-
-.sh-actions {
-  margin: 30px 0;
+  bottom: 12px;
+  width: 100%;
   text-align: center;
-}
-
-.sh-button-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-  margin-top: 15px;
-}
-
-.sh-btn {
-  padding: 12px 20px;
-  border: none;
-  border-radius: 6px;
-  background: #4CAF50;
-  color: white;
+  font-size: 13px;
   font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-size: 12px;
+  color: #111;
+  text-shadow: 0 0 3px rgba(255, 255, 255, 0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 5px;
+  box-sizing: border-box;
 }
 
-.sh-btn:hover {
-  background: #45a049;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+.sh-player-role-icon {
+  width: 14px;
+  height: 14px;
+  vertical-align: middle;
+  margin-right: 2px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
-.sh-btn:active {
-  transform: translateY(0);
-}
-
-.sh-btn.yes {
-  background: #4CAF50;
-}
-
-.sh-btn.yes:hover {
-  background: #45a049;
-}
-
-.sh-btn.no {
-  background: #f44336;
-}
-
-.sh-btn.no:hover {
-  background: #da190b;
-}
-
-.sh-btn.danger {
-  background: #f44336;
-}
-
-.sh-btn.danger:hover {
-  background: #da190b;
-}
-
-.sh-btn.veto-btn {
-  background: #FF9800;
-  margin-top: 15px;
-}
-
-.sh-btn.veto-btn:hover {
-  background: #e68900;
-}
-
-.sh-card {
-  background: transparent;
-  border: 2px solid #666;
-}
-
-.sh-cards h3 {
-  margin-top: 0;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #FFD700;
-}
-
-.sh-card-display {
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin: 20px 0;
-}
-
-.sh-card {
-  width: 120px;
-  height: 160px;
-  padding: 20px;
-  border-radius: 8px;
+.sh-player-badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 30px;
+  height: 30px;
+  background: #f39c12;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s;
-  border: 3px solid transparent;
+  font-size: 14px;
   font-weight: bold;
-  font-size: 18px;
-  text-align: center;
+  color: #000;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
-.sh-card.liberal {
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-  color: white;
-  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+.sh-player-vote-badge {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 40px;
+  height: 40px;
+  z-index: 3;
 }
 
-.sh-card.liberal:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.5);
-  border-color: #fff;
+.sh-player-badge.chancellor {
+  background: #2ecc71;
+  left: -10px;
+  right: auto;
 }
 
-.sh-card.fascist {
-  background: linear-gradient(135deg, #f44336 0%, #da190b 100%);
-  color: white;
-  box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+/* ==================== CENTER AREA ==================== */
+#sh-center-area {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 5;
 }
 
-.sh-card.fascist:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 20px rgba(244, 67, 54, 0.5);
-  border-color: #fff;
-}
-
-.sh-card-content {
-  text-align: center;
-}
-
-.sh-gameover {
-  padding: 30px;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 8px;
-  text-align: center;
-  margin-top: 30px;
-}
-
-.sh-gameover h2 {
-  font-size: 32px;
-  margin: 0 0 20px 0;
-  text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-}
-
-.sh-gameover h2.liberal {
-  color: #4CAF50;
-}
-
-.sh-gameover h2.fascist {
-  color: #f44336;
-}
-
-.sh-result {
-  padding: 20px;
-  border-radius: 8px;
+#sh-piles-row {
+  display: flex;
+  justify-content: center;
+  gap: 150px;
   margin-bottom: 20px;
-  background: rgba(100, 100, 100, 0.3);
 }
 
-.sh-result.victory {
-  background: rgba(76, 175, 80, 0.2);
-  border: 2px solid #4CAF50;
+.sh-pile {
+  position: relative;
+  width: 100px;
+  height: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.6));
 }
 
-.sh-result.defeat {
-  background: rgba(244, 67, 54, 0.2);
-  border: 2px solid #f44336;
+.sh-pile-stack {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
 }
 
-.sh-result h3 {
+.sh-pile-base {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  object-fit: contain;
+}
+
+.sh-pile-layer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(-2px -2px 3px rgba(0, 0, 0, 0.3));
+}
+
+.sh-pile-count {
+  position: absolute;
+  bottom: -35px;
+  width: 100%;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 2px 2px 4px #000;
+}
+
+#sh-boards-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Election Tracker Strip */
+#sh-election-strip {
+  position: relative;
+  width: 500px;
+  max-width: 90%;
+  height: 80px;
+  background: url('/assets/board-election-tracker.png') center/contain no-repeat;
+  filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.6));
+  margin-top: 10px;
+}
+
+.sh-board {
+  position: relative;
+  width: 700px;
+  height: 220px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.8));
+}
+
+.sh-policy-slot-overlay {
+  position: absolute;
+  width: 78px;
+  height: 110px;
+  top: 50px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0;
+  transform: scale(1.1) translateY(-20px);
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.sh-policy-slot-overlay.active {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* Election Tracker Token */
+#sh-election-marker {
+  position: absolute;
+  width: 35px;
+  height: 35px;
+  top: 50%;
+  transform: translateY(140%) scale(0.8);
+  background: url('/assets/board-tracker.png') center/contain no-repeat;
+  transition: left 0.4s ease;
+  display: none;
+  z-index: 2;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+/* ==================== BOTTOM AREA (HAND) ==================== */
+#sh-bottom-area {
+  height: 25%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  z-index: 10;
+}
+
+#sh-status-banner {
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px 30px;
+  border-radius: 30px;
+  border: 1px solid #ebd7b5;
+  color: #ebd7b5;
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+#sh-action-container {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+}
+
+.sh-hand-card {
+  width: 110px;
+  height: 150px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.6));
+}
+
+.sh-hand-card:hover {
+  transform: translateY(-15px) scale(1.05);
+  filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.8));
+}
+
+.sh-vote-btn {
+  width: 80px;
+  height: 80px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: pointer;
+  border: none;
+  background-color: transparent;
+  transition: transform 0.2s ease;
+  filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.5));
+}
+
+.sh-vote-btn:hover {
+  transform: scale(1.1);
+}
+
+.sh-action-btn {
+  padding: 12px 24px;
+  background: linear-gradient(to bottom, #d32f2f, #b71c1c);
+  color: white;
+  border: 2px solid #ffc107;
+  border-radius: 8px;
+  font-family: 'Times New Roman', serif;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s;
+}
+
+.sh-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
+}
+
+.sh-vote-card-btn {
+  height: 250px;
+  cursor: pointer;
+  border-radius: 12px;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.6));
+  transition: transform 0.2s, filter 0.2s;
+}
+
+.sh-vote-card-btn:hover {
+  transform: scale(1.05) translateY(-5px);
+  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.8));
+}
+
+/* ==================== OVERLAYS ==================== */
+#sh-game-over-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1s ease;
+}
+
+#sh-game-over-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sh-victory-banner {
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 20px;
+}
+
+.sh-role-reveal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+}
+
+.sh-role-popup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px;
+  max-width: 600px;
+  width: 100%;
+}
+
+.sh-role-cards-row {
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.sh-role-card-img {
+  height: 280px;
+  border-radius: 12px;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.8));
+  transition: transform 0.3s;
+}
+
+.sh-role-card-img:hover {
+  transform: scale(1.03);
+}
+
+.sh-role-goal {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 20px 30px;
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+}
+
+.sh-role-goal h3 {
   margin: 0 0 10px 0;
-  font-size: 24px;
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
-.sh-result.victory h3 {
+.sh-role-goal p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+.sh-role-goal.liberal h3 {
   color: #4CAF50;
 }
 
-.sh-result.defeat h3 {
-  color: #f44336;
+.sh-role-goal.fascist h3 {
+  color: #e74c3c;
 }
 
-.sh-final-roles {
-  margin-top: 20px;
-  padding: 15px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 6px;
+.sh-role-goal.hitler h3 {
+  color: #e74c3c;
 }
 
-.sh-final-roles h3 {
-  margin-top: 0;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  border-bottom: 2px solid #FFD700;
-  padding-bottom: 10px;
+.sh-envelope {
+  width: 300px;
+  height: 200px;
+  background: url('/assets/role-envelope-front.png') center/contain no-repeat;
+  cursor: pointer;
+  transition: transform 0.5s;
 }
 
-.sh-final-role {
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 4px;
-  background: rgba(100, 100, 100, 0.2);
+.sh-envelope:hover {
+  transform: scale(1.05);
 }
 
-.sh-final-role.liberal {
-  border-left: 4px solid #4CAF50;
-}
-
-.sh-final-role.fascist {
-  border-left: 4px solid #f44336;
-}
-
-.sh-final-role.hitler {
-  border-left: 4px solid #333;
-  background: rgba(244, 67, 54, 0.1);
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .sh-header {
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .sh-policies {
-    flex-direction: column;
-  }
-
-  .sh-player-list {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  }
-
-  .sh-card {
-    width: 100px;
-    height: 140px;
-    font-size: 14px;
-  }
-
-  .sh-button-group {
-    flex-direction: column;
-  }
-
-  .sh-btn {
+/* Responsive adjustments */
+@media (max-width: 800px) {
+  .sh-board {
     width: 100%;
+    height: 120px;
+  }
+
+  .sh-policy-slot-overlay {
+    width: 45px;
+    height: 65px;
+    top: 25px;
+  }
+
+  .sh-player {
+    width: 60px;
+    height: 80px;
+  }
+
+  .sh-player-portrait {
+    width: 35px;
+    height: 35px;
+    top: 10px;
+  }
+
+  .sh-player-name {
+    font-size: 9px;
+    bottom: 8px;
+  }
+
+  #sh-piles-row {
+    width: 100%;
+    margin-bottom: 0;
+  }
+
+  .sh-pile {
+    width: 70px;
+    height: 90px;
   }
 }

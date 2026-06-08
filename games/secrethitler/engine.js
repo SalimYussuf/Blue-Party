@@ -185,7 +185,13 @@ class SecretHitlerEngine {
     this.voteMap[playerId] = !!voteYes;
 
     if (this.haveAllLivingPlayersVoted()) {
-      this.resolveVote();
+      this.setState('voting_results');
+      this.broadcastState();
+      setTimeout(() => {
+        this.resolveVote();
+        this.broadcastState();
+      }, 5000);
+      return true;
     }
 
     this.broadcastState();
@@ -256,9 +262,16 @@ class SecretHitlerEngine {
     }
 
     this.didVetoOccurThisTurn = false;
-    this.enactPolicy(enacted);
-    this.onEnactPolicy(enacted);
+    this.lastEnactedPolicy = enacted;
+    this.setState('policy_enacted');
     this.broadcastState();
+
+    setTimeout(() => {
+      this.enactPolicy(enacted);
+      this.onEnactPolicy(enacted);
+      this.broadcastState();
+    }, 4000);
+
     return true;
   }
 
