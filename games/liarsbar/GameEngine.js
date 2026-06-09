@@ -55,7 +55,8 @@ class GameEngine {
 
     // Reset all players
     for (const player of this.room.players.values()) {
-      player.resetRevolver();
+      player.resetGameState();
+      player.teamIndex = player.teamIndex;
       player.hand = [];
     }
 

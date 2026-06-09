@@ -23,6 +23,16 @@ class Room {
     return this.settings;
   }
 
+  resetLobbyState() {
+    this.state = ROOM_STATE.WAITING;
+    for (const player of this.players.values()) {
+      player.isReady = false;
+      if (typeof player.resetGameState === 'function') {
+        player.resetGameState();
+      }
+    }
+  }
+
   addPlayer(player) {
     if (this.players.size >= MAX_PLAYERS) {
       return { success: false, error: 'Room is full' };

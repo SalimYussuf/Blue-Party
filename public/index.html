@@ -10,6 +10,7 @@
   <!-- Keep existing fonts via CSS import, but we can also add them here for redundancy if needed -->
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="/games/secrethitler/style.css">
+  <link rel="stylesheet" href="/games/ludo/style.css">
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 
@@ -177,6 +178,12 @@
                 <p>Don't get burned</p>
                 <span class="game-players-badge">2-6 players</span>
               </div>
+              <div class="game-carousel-card" data-game="ludo">
+                <div class="game-card-icon">🎲</div>
+                <h3>Ludo</h3>
+                <p>Race your tokens home</p>
+                <span class="game-players-badge">2-8 players</span>
+              </div>
               <div class="game-carousel-card" data-game="secrethitler">
                 <div class="game-card-icon">💀</div>
                 <h3>Secret Hitler</h3>
@@ -207,6 +214,45 @@
                 <input type="checkbox" id="toggle-chaos-mode">
                 <span class="toggle-slider"></span>
               </label>
+            </div>
+          </div>
+
+          <div id="ludo-settings" style="display:none">
+            <h2>Ludo Settings</h2>
+            <div class="settings-group">
+              <label class="toggle-container">
+                <div class="toggle-info">
+                  <span class="toggle-label">⚡ Turbo Mode</span>
+                  <span class="toggle-desc">Roll two dice instead of one for faster gameplay.</span>
+                </div>
+                <input type="checkbox" id="toggle-ludo-turbo">
+                <span class="toggle-slider"></span>
+              </label>
+              <label class="toggle-container" style="margin-top: 10px;">
+                <div class="toggle-info">
+                  <span class="toggle-label">🛡️ Safe Zones</span>
+                  <span class="toggle-desc">Squares where tokens cannot be captured.</span>
+                </div>
+                <input type="checkbox" id="toggle-ludo-safe">
+                <span class="toggle-slider"></span>
+              </label>
+              <label class="toggle-container" style="margin-top: 10px;">
+                <div class="toggle-info">
+                  <span class="toggle-label">🏃 Short Board</span>
+                  <span class="toggle-desc">40 squares instead of 52 for a quicker game.</span>
+                </div>
+                <input type="checkbox" id="toggle-ludo-short">
+                <span class="toggle-slider"></span>
+              </label>
+              <div style="margin-top: 10px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 4px;">⏳ Turn Timer</label>
+                <select id="select-ludo-timer" style="width: 100%; padding: 8px; border-radius: 4px; background: var(--bg-glass); color: white; border: 1px solid rgba(255,255,255,0.2);">
+                  <option value="0">Off (No timer)</option>
+                  <option value="10">10 Seconds</option>
+                  <option value="15">15 Seconds</option>
+                  <option value="30">30 Seconds</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -382,6 +428,9 @@
 
   <!-- ===== SECRET HITLER SCREEN ===== -->
   <div class="screen" id="secrethitler-screen"></div>
+
+  <!-- ===== LUDO SCREEN ===== -->
+  <div class="screen" id="ludo-screen"></div>
 
   <!-- ===== GLOBAL HOST CONTROLS ===== -->
   <div id="global-host-controls" class="hidden" style="position: fixed; top: 10px; left: 10px; z-index: 9999;">

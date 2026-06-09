@@ -77,6 +77,13 @@
   const uwongosSettings = $('uwongos-settings');
   const toggleDevilMode = $('toggle-devil-mode');
   const toggleChaosMode = $('toggle-chaos-mode');
+  
+  const ludoSettings = $('ludo-settings');
+  const toggleLudoTurbo = $('toggle-ludo-turbo');
+  const toggleLudoSafe = $('toggle-ludo-safe');
+  const toggleLudoShort = $('toggle-ludo-short');
+  const selectLudoTimer = $('select-ludo-timer');
+
   // Lobby chat removed
   const btnHelpJoin = $('btn-help-join');
   const btnHelpRoom = $('btn-help-room');
@@ -402,6 +409,26 @@
     socket.emit('update_settings', { roomCode: state.roomCode, settings });
   });
 
+  toggleLudoTurbo?.addEventListener('change', () => {
+    if (!state.isHost) return;
+    socket.emit('update_settings', { roomCode: state.roomCode, settings: { turboMode: toggleLudoTurbo.checked } });
+  });
+
+  toggleLudoSafe?.addEventListener('change', () => {
+    if (!state.isHost) return;
+    socket.emit('update_settings', { roomCode: state.roomCode, settings: { safeZones: toggleLudoSafe.checked } });
+  });
+
+  toggleLudoShort?.addEventListener('change', () => {
+    if (!state.isHost) return;
+    socket.emit('update_settings', { roomCode: state.roomCode, settings: { shortBoard: toggleLudoShort.checked } });
+  });
+
+  selectLudoTimer?.addEventListener('change', () => {
+    if (!state.isHost) return;
+    socket.emit('update_settings', { roomCode: state.roomCode, settings: { turnTimer: parseInt(selectLudoTimer.value, 10) } });
+  });
+
   function showRoomLobby(roomCode, players, hostId) {
     state.roomCode = roomCode;
     state.isHost = (hostId === state.playerId);
@@ -421,11 +448,16 @@
     updateCarouselHostStatus();
     toggleDevilMode.disabled = !state.isHost;
     toggleChaosMode.disabled = !state.isHost;
+    if (toggleLudoTurbo) toggleLudoTurbo.disabled = !state.isHost;
+    if (toggleLudoSafe) toggleLudoSafe.disabled = !state.isHost;
+    if (toggleLudoShort) toggleLudoShort.disabled = !state.isHost;
+    if (selectLudoTimer) selectLudoTimer.disabled = !state.isHost;
     
     // Set initial game
     if (state.selectedGameId) {
       updateCarouselUI(state.selectedGameId);
       uwongosSettings.style.display = state.selectedGameId === 'liars-bar' ? 'block' : 'none';
+      if (ludoSettings) ludoSettings.style.display = state.selectedGameId === 'ludo' ? 'block' : 'none';
     }
     
     // Animation for entering room lobby
@@ -1075,23 +1107,33 @@
 
   // -- Lobby --
   socket.on('room_created', (data) => {
+    if (data.sessionToken) sessionStorage.setItem('uwongo_session', data.sessionToken);
     state.playerId = data.playerId;
     state.roomCode = data.roomCode;
     state.selectedGameId = data.selectedGameId;
     state.settings = data.settings || state.settings;
     if (toggleDevilMode) toggleDevilMode.checked = state.settings.isDevilCardMode;
     if (toggleChaosMode) toggleChaosMode.checked = state.settings.isChaosMode;
+    if (toggleLudoTurbo) toggleLudoTurbo.checked = state.settings.turboMode || false;
+    if (toggleLudoSafe) toggleLudoSafe.checked = state.settings.safeZones || false;
+    if (toggleLudoShort) toggleLudoShort.checked = state.settings.shortBoard || false;
+    if (selectLudoTimer) selectLudoTimer.value = state.settings.turnTimer || 0;
     showRoomLobby(data.roomCode, data.players, data.hostId);
     showToast('Room created!', 'success');
   });
 
   socket.on('room_joined', (data) => {
+    if (data.sessionToken) sessionStorage.setItem('uwongo_session', data.sessionToken);
     state.playerId = data.playerId;
     state.roomCode = data.roomCode;
     state.selectedGameId = data.selectedGameId;
     state.settings = data.settings || state.settings;
     if (toggleDevilMode) toggleDevilMode.checked = state.settings.isDevilCardMode;
     if (toggleChaosMode) toggleChaosMode.checked = state.settings.isChaosMode;
+    if (toggleLudoTurbo) toggleLudoTurbo.checked = state.settings.turboMode || false;
+    if (toggleLudoSafe) toggleLudoSafe.checked = state.settings.safeZones || false;
+    if (toggleLudoShort) toggleLudoShort.checked = state.settings.shortBoard || false;
+    if (selectLudoTimer) selectLudoTimer.value = state.settings.turnTimer || 0;
     showRoomLobby(data.roomCode, data.players, data.hostId);
     showToast('Joined room!', 'success');
   });
@@ -1100,6 +1142,10 @@
     state.settings = data.settings;
     if (toggleDevilMode) toggleDevilMode.checked = state.settings.isDevilCardMode;
     if (toggleChaosMode) toggleChaosMode.checked = state.settings.isChaosMode;
+    if (toggleLudoTurbo) toggleLudoTurbo.checked = state.settings.turboMode || false;
+    if (toggleLudoSafe) toggleLudoSafe.checked = state.settings.safeZones || false;
+    if (toggleLudoShort) toggleLudoShort.checked = state.settings.shortBoard || false;
+    if (selectLudoTimer) selectLudoTimer.value = state.settings.turnTimer || 0;
 
     let modeMsg = [];
     if (state.settings.isDevilCardMode) modeMsg.push('Devil Mode: ON');
@@ -1128,6 +1174,9 @@
     updateCarouselUI(data.gameId);
     if (uwongosSettings) {
       uwongosSettings.style.display = data.gameId === 'liars-bar' ? 'block' : 'none';
+    }
+    if (ludoSettings) {
+      ludoSettings.style.display = data.gameId === 'ludo' ? 'block' : 'none';
     }
   });
 
@@ -1537,7 +1586,12 @@
 
   socket.on('connect', () => {
     if (state.gameActive && !disconnectOverlay.classList.contains('hidden')) {
-      socket.emit('reconnect_attempt', { roomCode: state.roomCode, playerName: state.playerName });
+      const sessionToken = sessionStorage.getItem('uwongo_session');
+      if (sessionToken) {
+        socket.emit('reconnect_attempt', { sessionToken });
+      } else {
+        socket.emit('reconnect_attempt', { roomCode: state.roomCode, playerName: state.playerName }); // Fallback
+      }
     }
   });
 

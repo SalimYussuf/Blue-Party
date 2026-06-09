@@ -38,6 +38,18 @@ class GameManager {
     }));
   }
 
+  getAllGameEvents() {
+    const events = new Set();
+    for (const gameModule of this.games.values()) {
+      if (gameModule.clientEvents) {
+        Object.keys(gameModule.clientEvents).forEach(eventName => {
+          events.add(eventName);
+        });
+      }
+    }
+    return Array.from(events);
+  }
+
   startGame(roomCode, gameId, room, io) {
     const gameModule = this.games.get(gameId);
     if (!gameModule) {

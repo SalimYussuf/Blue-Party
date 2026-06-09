@@ -1,5 +1,6 @@
 const express = require('express');
 const http = require('http');
+const crypto = require('crypto');
 const { Server } = require('socket.io');
 const path = require('path');
 const Room = require('./server/Room');
@@ -94,11 +95,14 @@ const RATE_LIMITED_EVENTS = {
 const rooms = new Map(); // roomCode -> Room
 
 const playerRooms = new Map(); // socketId -> roomCode
-const disconnectedPlayers = new Map(); // oldSocketId -> { roomCode, playerId, timeout }
+const disconnectedPlayers = new Map(); // oldSocketId -> { roomCode, playerId, sessionToken, playerName, timeout }
 
 // ========== SOCKET HANDLERS ==========
 io.on('connection', (socket) => {
   console.log(`Player connected: ${socket.id}`);
+
+  // Fetch all valid game events from GameManager
+  const validGameEvents = gameManager.getAllGameEvents();
 
   // Per-socket rate-limit check helper
   function rateCheck(eventName) {
@@ -125,7 +129,8 @@ io.on('connection', (socket) => {
       return;
     }
 
-    const player = new Player(socket.id, name);
+    const sessionToken = crypto.randomUUID();
+    const player = new Player(socket.id, name, sessionToken);
     const code = Room.generateCode(rooms);
     const room = new Room(code, player);
 
@@ -136,6 +141,7 @@ io.on('connection', (socket) => {
 
     socket.emit('room_created', {
       roomCode: code,
+      sessionToken: sessionToken,
       players: room.getPlayerList(),
       hostId: room.hostId,
       playerId: socket.id,
@@ -173,71 +179,9 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Check if this player is currently disconnected
-    let foundDisconnected = null;
-    for (const [oldId, data] of disconnectedPlayers) {
-      if (data.roomCode === code && data.playerName === name) {
-        foundDisconnected = { oldId, data };
-        break;
-      }
-    }
-
-    if (foundDisconnected) {
-      const { oldId, data } = foundDisconnected;
-      clearTimeout(data.timeout);
-      disconnectedPlayers.delete(oldId);
-
-      const engine = gameManager.getEngine(code);
-      if (engine) {
-        const success = engine.handleReconnect(oldId, socket.id);
-        if (success) {
-          playerRooms.set(socket.id, code);
-          socket.join(code);
-
-          const player = room.getPlayer(socket.id);
-          socket.emit('reconnect_success', {
-            roomCode: code,
-            playerId: socket.id,
-            hand: player.hand,
-            players: engine.getPlayersInfo(socket.id),
-            gameState: engine.getState(),
-          });
-          return;
-        }
-      } else {
-        // Reconnecting to lobby
-        const player = room.getPlayer(oldId);
-        if (player) {
-          room.players.delete(oldId);
-          player.id = socket.id;
-          player.socketId = socket.id;
-          player.isConnected = true;
-          room.players.set(socket.id, player);
-          if (room.hostId === oldId) room.hostId = socket.id;
-
-          playerRooms.set(socket.id, code);
-          socket.join(code);
-
-          socket.emit('room_joined', {
-            roomCode: code,
-            players: room.getPlayerList(),
-            hostId: room.hostId,
-            playerId: socket.id,
-            settings: room.settings,
-            selectedGameId: room.selectedGameId,
-          });
-
-          socket.to(code).emit('player_list_update', {
-            players: room.getPlayerList(),
-            hostId: room.hostId,
-          });
-          return;
-        }
-      }
-    }
-
     // Normal join flow
-    const player = new Player(socket.id, name);
+    const sessionToken = crypto.randomUUID();
+    const player = new Player(socket.id, name, sessionToken);
     const result = room.addPlayer(player);
 
     if (!result.success) {
@@ -250,6 +194,7 @@ io.on('connection', (socket) => {
 
     socket.emit('room_joined', {
       roomCode: code,
+      sessionToken: sessionToken,
       players: room.getPlayerList(),
       hostId: room.hostId,
       playerId: socket.id,
@@ -267,7 +212,9 @@ io.on('connection', (socket) => {
   });
 
   // ---------- PLAYER READY ----------
-  socket.on('player_ready', ({ roomCode }) => {
+  socket.on('player_ready', () => {
+    const roomCode = playerRooms.get(socket.id);
+    if (!roomCode) return;
     const room = rooms.get(roomCode);
     if (!room) return;
 
@@ -283,7 +230,9 @@ io.on('connection', (socket) => {
   });
 
   // ---------- UPDATE SETTINGS ----------
-  socket.on('update_settings', ({ roomCode, settings }) => {
+  socket.on('update_settings', ({ settings }) => {
+    const roomCode = playerRooms.get(socket.id);
+    if (!roomCode) return;
     const room = rooms.get(roomCode);
     if (!room) return;
 
@@ -297,7 +246,9 @@ io.on('connection', (socket) => {
   });
 
   // ---------- CHANGE GAME ----------
-  socket.on('change_game', ({ roomCode, gameId }) => {
+  socket.on('change_game', ({ gameId }) => {
+    const roomCode = playerRooms.get(socket.id);
+    if (!roomCode) return;
     const room = rooms.get(roomCode);
     if (!room) return;
 
@@ -316,7 +267,9 @@ io.on('connection', (socket) => {
   });
 
   // ---------- START GAME ----------
-  socket.on('start_game', ({ roomCode }) => {
+  socket.on('start_game', () => {
+    const roomCode = playerRooms.get(socket.id);
+    if (!roomCode) return;
     const room = rooms.get(roomCode);
     if (!room) return;
 
@@ -341,35 +294,32 @@ io.on('connection', (socket) => {
     }
   });
 
-  // ---------- CATCH ALL EVENTS FOR GAME MANAGER ----------
-  socket.onAny((eventName, ...args) => {
-    // Ignore globally handled events
-    if (['create_room', 'join_room', 'change_game', 'start_game', 'select_game', 'disconnect', 'reconnect_attempt', 'player_ready', 'update_settings', 'leave_room', 'play_again', 'send_emoji', 'lobby_chat', 'kick_player', 'force_lobby'].includes(eventName)) return;
-
-    const data = args[0] || {};
-    const roomCode = data.roomCode;
-    if (roomCode) {
-      gameManager.handleSocketEvent(socket, eventName, data, io, roomCode);
-    }
+  // ---------- GAME EVENTS (DYNAMIC WHITELIST) ----------
+  validGameEvents.forEach(eventName => {
+    socket.on(eventName, (...args) => {
+      const roomCode = playerRooms.get(socket.id);
+      if (roomCode) {
+        const data = args[0] || {};
+        gameManager.handleSocketEvent(socket, eventName, data, io, roomCode);
+      }
+    });
   });
 
   // ---------- LEAVE ROOM ----------
-  socket.on('leave_room', ({ roomCode }) => {
+  socket.on('leave_room', () => {
+    const roomCode = playerRooms.get(socket.id);
+    if (!roomCode) return;
     handlePlayerLeave(socket, roomCode);
   });
 
   // ---------- PLAY AGAIN ----------
-  socket.on('play_again', ({ roomCode }) => {
+  socket.on('play_again', () => {
+    const roomCode = playerRooms.get(socket.id);
+    if (!roomCode) return;
     const room = rooms.get(roomCode);
     if (!room) return;
 
-    // Reset room state
-    room.state = 'waiting';
-    for (const player of room.players.values()) {
-      player.isReady = false;
-      player.hand = [];
-      if (player.resetRevolver) player.resetRevolver();
-    }
+    room.resetLobbyState();
 
     gameManager.endGame(roomCode);
 
@@ -380,8 +330,10 @@ io.on('connection', (socket) => {
   });
 
   // ---------- FORCE LOBBY (HOST ONLY) ----------
-  socket.on('force_lobby', ({ roomCode }) => {
+  socket.on('force_lobby', () => {
     if (rateCheck('force_lobby')) return;
+    const roomCode = playerRooms.get(socket.id);
+    if (!roomCode) return;
     const room = rooms.get(roomCode);
     if (!room) return;
 
@@ -390,13 +342,7 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Reset room state
-    room.state = 'waiting';
-    for (const player of room.players.values()) {
-      player.isReady = false;
-      player.hand = [];
-      if (player.resetRevolver) player.resetRevolver();
-    }
+    room.resetLobbyState();
 
     gameManager.endGame(roomCode);
 
@@ -407,8 +353,10 @@ io.on('connection', (socket) => {
   });
 
   // ---------- EMOJI ----------
-  socket.on('send_emoji', ({ roomCode, emoji }) => {
+  socket.on('send_emoji', ({ emoji }) => {
     if (rateCheck('send_emoji')) return;
+    const roomCode = playerRooms.get(socket.id);
+    if (!roomCode) return;
     const room = rooms.get(roomCode);
     if (!room) return;
 
@@ -423,8 +371,10 @@ io.on('connection', (socket) => {
   });
 
   // ---------- LOBBY CHAT ----------
-  socket.on('lobby_chat', ({ roomCode, message }) => {
+  socket.on('lobby_chat', ({ message }) => {
     if (rateCheck('lobby_chat')) return;
+    const roomCode = playerRooms.get(socket.id);
+    if (!roomCode) return;
     const room = rooms.get(roomCode);
     if (!room) return;
     const player = room.getPlayer(socket.id);
@@ -440,8 +390,10 @@ io.on('connection', (socket) => {
   });
 
   // ---------- KICK PLAYER ----------
-  socket.on('kick_player', ({ roomCode, targetId }) => {
+  socket.on('kick_player', ({ targetId }) => {
     if (rateCheck('kick_player')) return;
+    const roomCode = playerRooms.get(socket.id);
+    if (!roomCode) return;
     const room = rooms.get(roomCode);
     if (!room) return;
     if (socket.id !== room.hostId) {
@@ -491,12 +443,14 @@ io.on('connection', (socket) => {
           // Player didn't reconnect in time — eliminate them
           engine.handleReconnectTimeout(socket.id);
           disconnectedPlayers.delete(socket.id);
+          playerRooms.delete(socket.id); // FIX MEMORY LEAK
         }, RECONNECT_TIMEOUT_MS);
 
         disconnectedPlayers.set(socket.id, {
           roomCode,
           playerId: socket.id,
           playerName: player.name,
+          sessionToken: player.sessionToken,
           timeout,
         });
       }
@@ -507,11 +461,11 @@ io.on('connection', (socket) => {
   });
 
   // ---------- RECONNECT ----------
-  socket.on('reconnect_attempt', ({ roomCode, playerName }) => {
-    // Find disconnected player by name and room
+  socket.on('reconnect_attempt', ({ sessionToken }) => {
+    // Find disconnected player by sessionToken
     let found = null;
     for (const [oldId, data] of disconnectedPlayers) {
-      if (data.roomCode === roomCode && data.playerName === playerName) {
+      if (data.sessionToken === sessionToken) {
         found = { oldId, data };
         break;
       }

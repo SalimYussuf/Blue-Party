@@ -1,10 +1,11 @@
 const { REVOLVER_CHAMBERS } = require('./constants');
 
 class Player {
-  constructor(socketId, name) {
+  constructor(socketId, name, sessionToken) {
     this.id = socketId;
     this.socketId = socketId;
     this.name = name;
+    this.sessionToken = sessionToken;
     this.hand = [];
     this.isReady = false;
     this.isHost = false;
@@ -50,9 +51,10 @@ class Player {
     return this.pullTrigger();
   }
 
-  resetRevolver() {
+  resetGameState() {
     this.shotsTaken = 0;
     this.isEliminated = false;
+    this.hand = [];
     this.stats = {
       roundsSurvived: 0,
       timesLied: 0,
