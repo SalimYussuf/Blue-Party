@@ -1,0 +1,65 @@
+instructions:
+  - name: JavaScript/TypeScript Quality
+    fileFilters:
+      - "**/*.js"
+      - "**/*.jsx"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "!**/*.test.js"
+      - "!**/*.test.ts"
+      - "!**/*.spec.js"
+      - "!**/*.spec.ts"
+      - "!package-lock.json"
+    instructions: |
+      1. Use const/let instead of var.
+      2. Prefer async/await over promise chains and ensure proper error handling in async code.
+      3. Naming must be clear and descriptive; functions should be small, focused, and testable.
+      4. Flag unused code, dead code, and commented-out code.
+      5. Add JSDoc comments for complex or public functions.
+      6. Avoid 'any' types in TypeScript; leverage strict typing.
+      7. Validate and sanitize all user inputs, especially in server-side code (server/, server.js).
+      8. Flag hardcoded secrets, credentials, or API keys.
+      9. Check that errors are handled gracefully and never silently swallowed.
+
+  - name: Server-Side Security
+    fileFilters:
+      - "server/**/*"
+      - "server.js"
+    instructions: |
+      1. All request parameters, query strings, and body payloads must be validated before use.
+      2. Flag potential injection risks (SQL/NoSQL injection, command injection, path traversal).
+      3. Ensure responses do not leak stack traces or internal details to clients.
+      4. Check authentication and authorization logic for bypasses.
+      5. Flag missing rate limiting or unbounded operations on user-controlled input.
+
+  - name: Testing Expectations
+    fileFilters:
+      - "**/*.test.js"
+      - "**/*.test.ts"
+      - "**/*.spec.js"
+      - "**/*.spec.ts"
+    instructions: |
+      1. Tests should cover both happy paths and edge cases.
+      2. Mocks should be used for external dependencies (network, database, file system).
+      3. Test names must clearly describe the behavior being verified.
+      4. Flag tests that assert implementation details instead of behavior.
+
+  - name: CSS and HTML
+    fileFilters:
+      - "**/*.css"
+      - "**/*.html"
+    instructions: |
+      1. Prefer reusable classes over duplicated style rules.
+      2. Flag inline styles and inline event handlers (onclick, etc.) in HTML.
+      3. Check for accessibility basics: alt text on images, semantic elements, sufficient labels on form inputs.
+      4. Flag unused selectors or obviously dead style rules when visible in the diff.
+
+  - name: General MR Hygiene
+    fileFilters:
+      - "**/*"
+      - "!package-lock.json"
+    instructions: |
+      1. Changes should be focused; flag unrelated changes bundled into the MR.
+      2. Complex logic should have explanatory comments.
+      3. Documentation (README, comments) should be updated when behavior changes.
+      4. Distinguish blocking issues from minor nitpicks; prefix non-blocking suggestions with 'nit:'.
